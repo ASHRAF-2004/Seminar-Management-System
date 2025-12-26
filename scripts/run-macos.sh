@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+if ! command -v javac >/dev/null 2>&1 || ! command -v java >/dev/null 2>&1; then
+  echo "JDK not found. Please install a Java Development Kit (JDK) and ensure 'java' and 'javac' are on your PATH." >&2
+  exit 1
+fi
+
 cleanup() {
   rm -f sources.txt
 }
