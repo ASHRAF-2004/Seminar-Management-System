@@ -38,5 +38,14 @@ On startup, use any of the seeded accounts (password `pass`):
 - **Evaluator**: `eval1`
 - **Coordinator**: `coord1`
 
+## One-click run scripts
+Run the app with the provided OS-specific helpers in `scripts/`:
+
+- **Linux**: `./scripts/run-linux.sh`
+- **macOS**: `./scripts/run-macos.sh`
+- **Windows**: `scripts\run-windows.bat`
+
+Each script compiles sources into `out/` and starts `ui.Main`. On first use, make the shell scripts executable (`chmod +x scripts/run-*.sh`).
+
 ## Resetting data
 Delete the CSV files under `data/` to restore the seeded defaults on the next launch.
