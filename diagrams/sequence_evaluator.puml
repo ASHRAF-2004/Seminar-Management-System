@@ -1,0 +1,18 @@
+@startuml
+actor Evaluator
+participant RoleSelectionFrame
+participant EvaluatorDashboard
+participant EvaluationService
+participant EvaluationRepository
+
+Evaluator -> RoleSelectionFrame: login as evaluator
+RoleSelectionFrame -> EvaluatorDashboard: open()
+Evaluator -> EvaluatorDashboard: select seminar + evaluate
+EvaluatorDashboard -> EvaluationService: saveEvaluation(seminarId, evaluatorId, scores)
+EvaluationService -> EvaluationRepository: findBySeminarAndEvaluator
+EvaluationRepository --> EvaluationService: existing/new
+EvaluationService -> EvaluationRepository: addOrUpdate(evaluation)
+EvaluationRepository --> EvaluationService: saved
+EvaluationService --> EvaluatorDashboard: evaluation with average
+EvaluatorDashboard --> Evaluator: display confirmation
+@enduml

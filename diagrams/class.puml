@@ -1,0 +1,90 @@
+@startuml
+package model {
+    class User {
+        -id: String
+        -name: String
+        -role: Role
+        -password: String
+    }
+    enum Role {STUDENT; EVALUATOR; COORDINATOR}
+    enum SeminarStatus {DRAFT; OPEN; CLOSED; COMPLETED}
+    class Seminar {
+        -id: String
+        -title: String
+        -presenterId: String
+        -abstractText: String
+        -supervisor: String
+        -presentationType: String
+        -venue: String
+        -date: LocalDate
+        -status: SeminarStatus
+    }
+    class Enrollment {
+        -id: String
+        -seminarId: String
+        -studentId: String
+        -status: String
+    }
+    class Evaluation {
+        -id: String
+        -seminarId: String
+        -evaluatorId: String
+        -problemClarity: int
+        -methodology: int
+        -results: int
+        -presentation: int
+        -comments: String
+    }
+}
+
+package repository {
+    class UserRepository
+    class SeminarRepository
+    class EnrollmentRepository
+    class EvaluationRepository
+}
+
+package service {
+    class AuthService
+    class SeminarService
+    class EnrollmentService
+    class EvaluationService
+}
+
+package ui {
+    class RoleSelectionFrame
+    class StudentDashboard
+    class CoordinatorDashboard
+    class EvaluatorDashboard
+    class Main
+}
+
+UserRepository --> User
+SeminarRepository --> Seminar
+EnrollmentRepository --> Enrollment
+EvaluationRepository --> Evaluation
+
+AuthService --> UserRepository
+SeminarService --> SeminarRepository
+EnrollmentService --> EnrollmentRepository
+EvaluationService --> EvaluationRepository
+
+RoleSelectionFrame --> AuthService
+RoleSelectionFrame --> SeminarService
+RoleSelectionFrame --> EnrollmentService
+RoleSelectionFrame --> EvaluationService
+RoleSelectionFrame --> UserRepository
+StudentDashboard --> SeminarService
+StudentDashboard --> EnrollmentService
+CoordinatorDashboard --> SeminarService
+CoordinatorDashboard --> EnrollmentService
+CoordinatorDashboard --> UserRepository
+EvaluatorDashboard --> SeminarService
+EvaluatorDashboard --> EvaluationService
+
+Enrollment "*" --> Seminar
+Evaluation "*" --> Seminar
+User "1" --> Role
+Seminar --> SeminarStatus
+
+@enduml

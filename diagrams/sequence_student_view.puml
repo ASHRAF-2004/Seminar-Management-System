@@ -1,0 +1,18 @@
+@startuml
+actor Student
+participant RoleSelectionFrame
+participant AuthService
+participant StudentDashboard
+participant SeminarService
+participant SeminarRepository
+
+Student -> RoleSelectionFrame: choose role + login
+RoleSelectionFrame -> AuthService: login(id,pwd, STUDENT)
+AuthService --> RoleSelectionFrame: User
+RoleSelectionFrame -> StudentDashboard: open(studentId)
+StudentDashboard -> SeminarService: getAll()
+SeminarService -> SeminarRepository: findAll()
+SeminarRepository --> SeminarService: seminars
+SeminarService --> StudentDashboard: list
+StudentDashboard --> Student: display seminars
+@enduml

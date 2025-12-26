@@ -1,0 +1,16 @@
+@startuml
+actor Coordinator
+participant RoleSelectionFrame
+participant CoordinatorDashboard
+participant SeminarService
+participant SeminarRepository
+
+Coordinator -> RoleSelectionFrame: login as coordinator
+RoleSelectionFrame -> CoordinatorDashboard: open()
+Coordinator -> CoordinatorDashboard: create/edit seminar
+CoordinatorDashboard -> SeminarService: create/update(title,...)
+SeminarService -> SeminarRepository: addSeminar/update
+SeminarRepository --> SeminarService: saved
+SeminarService --> CoordinatorDashboard: success
+CoordinatorDashboard --> Coordinator: refreshed lists
+@enduml
