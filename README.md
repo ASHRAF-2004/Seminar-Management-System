@@ -25,13 +25,36 @@ Data files live in `data/` and can be cleared to reset the application state.
 - A terminal capable of running `javac` and `java`
 
 ## Build and run
-Compile the sources into an `out` directory, then launch the Swing app:
+Compile the sources into an `out` directory, then launch the Swing app. Use the commands that match your shell/OS:
 
-```bash
-# From the repository root
-javac -d out $(find src -name "*.java")
-java -cp out ui.Main
-```
+**Linux/macOS (bash/zsh):**
+  ```bash
+  # From the repository root
+  javac -d out $(find src -name "*.java")
+  java -cp out ui.Main
+  ```
+
+- **Windows (PowerShell):**
+  ```powershell
+  Set-Location $PSScriptRoot
+  if (-not (Test-Path out)) { New-Item -ItemType Directory out | Out-Null }
+  Get-ChildItem -Recurse -Filter *.java -Path src | Select-Object -ExpandProperty FullName | Set-Content sources.txt
+  javac -d out @sources.txt
+  java -cp out ui.Main
+  Remove-Item sources.txt -ErrorAction SilentlyContinue
+  ```
+
+- **Windows (Command Prompt):**
+  ```cmd
+  cd /d %~dp0
+  if not exist out mkdir out
+  dir /s /b "src\*.java" > sources.txt
+  javac -d out @sources.txt
+  java -cp out ui.Main
+  del sources.txt
+  ```
+
+If you prefer a one-liner experience, use the OS-specific helper scripts in `scripts/` (see below).
 
 On startup, use any of the seeded accounts (password `pass`):
 - **Student**: `stu1`
