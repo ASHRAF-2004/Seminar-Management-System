@@ -11,7 +11,8 @@ where java >nul 2>&1
 if errorlevel 1 goto :nojdk
 
 if not exist out mkdir out
-dir /s /b "src\*.java" > sources.txt
+del /f /q sources.txt >nul 2>&1
+for /r "src" %%F in (*.java) do echo "%%F" >> sources.txt
 
 javac -d out @sources.txt
 if errorlevel 1 goto :cleanup
