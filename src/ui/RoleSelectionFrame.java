@@ -5,6 +5,8 @@ import repository.UserRepository;
 import service.AuthService;
 import service.EnrollmentService;
 import service.EvaluationService;
+import service.SessionService;
+import service.SubmissionService;
 import service.SeminarService;
 
 import javax.swing.*;
@@ -15,15 +17,20 @@ public class RoleSelectionFrame extends JFrame {
     private final SeminarService seminarService;
     private final EnrollmentService enrollmentService;
     private final EvaluationService evaluationService;
+    private final SubmissionService submissionService;
+    private final SessionService sessionService;
     private final UserRepository userRepository;
 
     public RoleSelectionFrame(AuthService authService, SeminarService seminarService, EnrollmentService enrollmentService,
-                              EvaluationService evaluationService, UserRepository userRepository) {
+                              EvaluationService evaluationService, SubmissionService submissionService,
+                              SessionService sessionService, UserRepository userRepository) {
         super("Seminar Management System - Role Selection");
         this.authService = authService;
         this.seminarService = seminarService;
         this.enrollmentService = enrollmentService;
         this.evaluationService = evaluationService;
+        this.submissionService = submissionService;
+        this.sessionService = sessionService;
         this.userRepository = userRepository;
         buildUi();
     }
@@ -93,9 +100,9 @@ public class RoleSelectionFrame extends JFrame {
     private void openDashboard(Role role, String userId) {
         dispose();
         switch (role) {
-            case STUDENT -> new StudentDashboard(seminarService, enrollmentService, userId).setVisible(true);
-            case EVALUATOR -> new EvaluatorDashboard(seminarService, evaluationService, userId).setVisible(true);
-            case COORDINATOR -> new CoordinatorDashboard(seminarService, enrollmentService, userRepository).setVisible(true);
+            case STUDENT -> new StudentDashboard(seminarService, enrollmentService, submissionService, userId).setVisible(true);
+            case EVALUATOR -> new EvaluatorDashboard(seminarService, evaluationService, submissionService, sessionService, userId).setVisible(true);
+            case COORDINATOR -> new CoordinatorDashboard(seminarService, enrollmentService, submissionService, sessionService, userRepository).setVisible(true);
             default -> throw new IllegalStateException("Unexpected value: " + role);
         }
     }

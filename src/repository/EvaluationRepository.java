@@ -5,7 +5,9 @@ import util.FileUtils;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -54,5 +56,13 @@ public class EvaluationRepository {
         return evaluations.stream()
                 .filter(e -> e.getSeminarId().equals(seminarId) && e.getEvaluatorId().equals(evaluatorId))
                 .findFirst();
+    }
+
+    public Map<String, List<Evaluation>> findAllGroupedBySeminar() {
+        Map<String, List<Evaluation>> grouped = new HashMap<>();
+        for (Evaluation e : evaluations) {
+            grouped.computeIfAbsent(e.getSeminarId(), k -> new ArrayList<>()).add(e);
+        }
+        return grouped;
     }
 }

@@ -1,36 +1,48 @@
 package ui;
 
 import model.Enrollment;
-import model.Seminar;
+import model.Submission;
 import service.EnrollmentService;
 import service.SeminarService;
+import service.SubmissionService;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
+import java.io.File;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
 public class StudentDashboard extends JFrame {
     private final SeminarService seminarService;
     private final EnrollmentService enrollmentService;
+    private final SubmissionService submissionService;
     private final String studentId;
     private final DefaultTableModel seminarModel;
     private final DefaultTableModel enrollmentModel;
 
-    public StudentDashboard(SeminarService seminarService, EnrollmentService enrollmentService, String studentId) {
+    private JTextField titleField;
+    private JTextField abstractField;
+    private JTextField supervisorField;
+    private JComboBox<String> typeBox;
+    private JTextField fileField;
+
+    public StudentDashboard(SeminarService seminarService, EnrollmentService enrollmentService,
+                             SubmissionService submissionService, String studentId) {
         super("Student Dashboard");
         this.seminarService = seminarService;
         this.enrollmentService = enrollmentService;
+        this.submissionService = submissionService;
         this.studentId = studentId;
         this.seminarModel = new DefaultTableModel(new Object[]{"ID", "Title", "Date", "Venue", "Status"}, 0);
         this.enrollmentModel = new DefaultTableModel(new Object[]{"Enrollment ID", "Seminar", "Status"}, 0);
         buildUi();
         loadData();
+        loadSubmission();
     }
 
     private void buildUi() {
-        setSize(700, 500);
+        setSize(900, 600);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
@@ -56,8 +68,13 @@ public class StudentDashboard extends JFrame {
         enrollScroll.setPreferredSize(new Dimension(250, 150));
 
         JSplitPane splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, seminarScroll, enrollScroll);
-        splitPane.setResizeWeight(0.7);
-        add(splitPane, BorderLayout.CENTER);
+        splitPane.setResizeWeight(0.5);
+
+        JPanel submissionPanel = buildSubmissionPanel();
+
+        JSplitPane outer = new JSplitPane(JSplitPane.VERTICAL_SPLIT, splitPane, submissionPanel);
+        outer.setResizeWeight(0.5);
+        add(outer, BorderLayout.CENTER);
 
         enrollButton.addActionListener(e -> {
             int row = seminarTable.getSelectedRow();
@@ -71,14 +88,61 @@ public class StudentDashboard extends JFrame {
             loadEnrollments();
         });
 
-        refreshButton.addActionListener(e -> loadData());
+        refreshButton.addActionListener(e -> {
+            loadData();
+            loadSubmission();
+        });
+    }
+
+    private JPanel buildSubmissionPanel() {
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setBorder(BorderFactory.createTitledBorder("My Presentation Submission"));
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        titleField = new JTextField();
+        abstractField = new JTextField();
+        supervisorField = new JTextField();
+        typeBox = new JComboBox<>(new String[]{"ORAL", "POSTER"});
+        fileField = new JTextField();
+        JButton browse = new JButton("Browse...");
+
+        browse.addActionListener(e -> {
+            JFileChooser chooser = new JFileChooser();
+            int result = chooser.showOpenDialog(this);
+            if (result == JFileChooser.APPROVE_OPTION) {
+                File file = chooser.getSelectedFile();
+                fileField.setText(file.getAbsolutePath());
+            }
+        });
+
+        int y = 0;
+        gbc.gridx = 0; gbc.gridy = y; panel.add(new JLabel("Research Title"), gbc);
+        gbc.gridx = 1; panel.add(titleField, gbc); y++;
+        gbc.gridx = 0; gbc.gridy = y; panel.add(new JLabel("Abstract"), gbc);
+        gbc.gridx = 1; panel.add(abstractField, gbc); y++;
+        gbc.gridx = 0; gbc.gridy = y; panel.add(new JLabel("Supervisor"), gbc);
+        gbc.gridx = 1; panel.add(supervisorField, gbc); y++;
+        gbc.gridx = 0; gbc.gridy = y; panel.add(new JLabel("Presentation Type"), gbc);
+        gbc.gridx = 1; panel.add(typeBox, gbc); y++;
+        gbc.gridx = 0; gbc.gridy = y; panel.add(new JLabel("File"), gbc);
+        gbc.gridx = 1; panel.add(fileField, gbc);
+        gbc.gridx = 2; panel.add(browse, gbc); y++;
+
+        JButton save = new JButton("Save Submission");
+        gbc.gridx = 0; gbc.gridy = y; gbc.gridwidth = 3; panel.add(save, gbc);
+
+        save.addActionListener(e -> saveSubmission());
+
+        return panel;
     }
 
     private void loadData() {
         seminarModel.setRowCount(0);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd MMM yyyy");
-        List<Seminar> seminars = seminarService.getAll();
-        for (Seminar s : seminars) {
+        List<model.Seminar> seminars = seminarService.getAll();
+        for (model.Seminar s : seminars) {
             seminarModel.addRow(new Object[]{s.getId(), s.getTitle(), s.getDate().format(formatter), s.getVenue(), s.getStatus()});
         }
         loadEnrollments();
@@ -90,5 +154,26 @@ public class StudentDashboard extends JFrame {
         for (Enrollment e : enrollments) {
             enrollmentModel.addRow(new Object[]{e.getId(), e.getSeminarId(), e.getStatus()});
         }
+    }
+
+    private void saveSubmission() {
+        if (titleField.getText().isBlank() || abstractField.getText().isBlank() || supervisorField.getText().isBlank()) {
+            JOptionPane.showMessageDialog(this, "Please fill in all fields", "Validation", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        Submission submission = submissionService.saveOrUpdate(studentId, titleField.getText().trim(),
+                abstractField.getText().trim(), supervisorField.getText().trim(), (String) typeBox.getSelectedItem(),
+                fileField.getText().trim());
+        JOptionPane.showMessageDialog(this, "Submission saved with ID " + submission.getId());
+    }
+
+    private void loadSubmission() {
+        submissionService.findByStudent(studentId).ifPresent(sub -> {
+            titleField.setText(sub.getResearchTitle());
+            abstractField.setText(sub.getAbstractText());
+            supervisorField.setText(sub.getSupervisorName());
+            typeBox.setSelectedItem(sub.getPresentationType().toUpperCase());
+            fileField.setText(sub.getFilePath());
+        });
     }
 }
