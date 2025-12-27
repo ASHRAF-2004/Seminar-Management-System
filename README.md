@@ -46,7 +46,7 @@ Compile the sources into an `out` directory, then launch the Swing app. Use the 
 
 - **Windows (Command Prompt):**
   ```cmd
-  cd /d %~dp0
+  cd /d "%~dp0"
   if not exist out mkdir out
   dir /s /b "src\*.java" > sources.txt
   javac -d out @sources.txt

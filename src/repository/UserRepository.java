@@ -57,6 +57,10 @@ public class UserRepository {
         return result;
     }
 
+    public List<User> findAll() {
+        return new ArrayList<>(users);
+    }
+
     private void save() {
         List<String> lines = new ArrayList<>();
         for (User u : users) {
