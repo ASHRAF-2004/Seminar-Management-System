@@ -2,7 +2,7 @@
 setlocal
 
 rem Resolve repository root relative to this script so it can be double-clicked
-set "BASEDIR=%~dp0.."
+for %%I in ("%~dp0..") do set "BASEDIR=%%~fI"
 pushd "%BASEDIR%"
 
 where javac >nul 2>&1
