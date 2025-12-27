@@ -8,18 +8,18 @@ import java.util.regex.Pattern;
 public class VenueCode {
     private static final Pattern PATTERN = Pattern.compile("([CM])([A-Z])([A-Z])([A-Z])(\\d)(\\d{3})");
     private static final Set<String> VALID_BUILDINGS = Set.of("A", "B", "C", "E", "L", "M", "N", "Q", "S", "U", "X");
-    private static final Map<String, String> BUILDING_MAP = Map.of(
-            "A", "FOB",
-            "B", "CDP",
-            "C", "Exam Hall",
-            "E", "SEC",
-            "L", "FET",
-            "M", "Admin",
-            "N", "FIST",
-            "Q", "Library",
-            "S", "CLC",
-            "U", "ACR",
-            "X", "Plaza Siswa"
+    private static final Map<String, String> BUILDING_MAP = Map.ofEntries(
+            Map.entry("A", "FOB"),
+            Map.entry("B", "CDP"),
+            Map.entry("C", "Exam Hall"),
+            Map.entry("E", "SEC"),
+            Map.entry("L", "FET"),
+            Map.entry("M", "Admin"),
+            Map.entry("N", "FIST"),
+            Map.entry("Q", "Library"),
+            Map.entry("S", "CLC"),
+            Map.entry("U", "ACR"),
+            Map.entry("X", "Plaza Siswa")
     );
 
     private VenueCode() {
