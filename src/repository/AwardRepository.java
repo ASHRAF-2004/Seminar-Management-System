@@ -1,47 +1,41 @@
 package repository;
 
 import model.Award;
+import util.AppConfig;
+import util.FileUtils;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 public class AwardRepository {
-    private static final String FILE = "data/awards.csv";
+    private final Path awardsFile;
 
     public AwardRepository() {
-        try {
-            new java.io.File(FILE).createNewFile();
-        } catch (IOException ignored) {
-        }
+        this(AppConfig.AWARDS_FILE);
+    }
+
+    public AwardRepository(Path awardsFile) {
+        this.awardsFile = awardsFile;
     }
 
     public synchronized List<Award> findAll() {
         List<Award> awards = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader(FILE))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                if (line.isBlank()) continue;
+        for (String line : FileUtils.readAllLines(awardsFile)) {
+            if (!line.isBlank()) {
                 awards.add(Award.fromCsv(line));
             }
-        } catch (IOException e) {
-            throw new RuntimeException("Unable to read awards", e);
         }
         return awards;
     }
 
     public synchronized void saveAll(List<Award> awards) {
-        try (FileWriter fw = new FileWriter(FILE, false)) {
-            for (Award a : awards) {
-                fw.write(a.toCsv() + System.lineSeparator());
-            }
-        } catch (IOException e) {
-            throw new RuntimeException("Unable to save awards", e);
+        List<String> lines = new ArrayList<>();
+        for (Award a : awards) {
+            lines.add(a.toCsv());
         }
+        FileUtils.writeLines(awardsFile, lines);
     }
 
     public synchronized void upsert(Award award) {

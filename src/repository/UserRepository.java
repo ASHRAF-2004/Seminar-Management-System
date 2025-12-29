@@ -2,7 +2,10 @@ package repository;
 
 import model.Role;
 import model.User;
+import util.AppConfig;
+import util.DefaultData;
 import util.FileUtils;
+import util.PasswordUtils;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -10,10 +13,15 @@ import java.util.List;
 import java.util.Optional;
 
 public class UserRepository {
-    private final Path userFile = Path.of("data/users.csv");
+    private final Path userFile;
     private final List<User> users;
 
     public UserRepository() {
+        this(AppConfig.USERS_FILE);
+    }
+
+    public UserRepository(Path userFile) {
+        this.userFile = userFile;
         users = new ArrayList<>();
         load();
         seedDefaults();
@@ -30,16 +38,14 @@ public class UserRepository {
 
     private void seedDefaults() {
         if (users.isEmpty()) {
-            users.add(new User("stu1", "Alice Student", Role.STUDENT, "pass"));
-            users.add(new User("eval1", "Dr. Eva Luator", Role.EVALUATOR, "pass"));
-            users.add(new User("coord1", "Mr. C Oord", Role.COORDINATOR, "pass"));
+            users.addAll(DefaultData.defaultUsers());
             save();
         }
     }
 
     public Optional<User> authenticate(String id, String password) {
         return users.stream()
-                .filter(u -> u.getId().equalsIgnoreCase(id) && u.getPassword().equals(password))
+                .filter(u -> u.getId().equalsIgnoreCase(id) && PasswordUtils.matches(password, u.getPasswordHash()))
                 .findFirst();
     }
 
@@ -61,10 +67,21 @@ public class UserRepository {
         return new ArrayList<>(users);
     }
 
+    public void saveUser(User user) {
+        if (findById(user.getId()) != null) {
+            throw new IllegalArgumentException("User ID already exists");
+        }
+        if (user.getRole() != Role.STUDENT) {
+            throw new IllegalArgumentException("Only students can self-register");
+        }
+        users.add(user);
+        save();
+    }
+
     private void save() {
         List<String> lines = new ArrayList<>();
         for (User u : users) {
-            lines.add(String.join("|", u.getId(), u.getName(), u.getRole().name(), u.getPassword()));
+            lines.add(String.join("|", u.getId(), u.getName(), u.getRole().name(), u.getPasswordHash()));
         }
         FileUtils.writeLines(userFile, lines);
     }

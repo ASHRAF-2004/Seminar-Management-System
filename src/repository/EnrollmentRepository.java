@@ -1,6 +1,7 @@
 package repository;
 
 import model.Enrollment;
+import util.AppConfig;
 import util.FileUtils;
 
 import java.nio.file.Path;
@@ -10,10 +11,15 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class EnrollmentRepository {
-    private final Path enrollmentFile = Path.of("data/enrollments.csv");
+    private final Path enrollmentFile;
     private final List<Enrollment> enrollments;
 
     public EnrollmentRepository() {
+        this(AppConfig.ENROLLMENTS_FILE);
+    }
+
+    public EnrollmentRepository(Path enrollmentFile) {
+        this.enrollmentFile = enrollmentFile;
         enrollments = new ArrayList<>();
         load();
     }

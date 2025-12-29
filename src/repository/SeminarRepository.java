@@ -1,20 +1,25 @@
 package repository;
 
 import model.Seminar;
-import model.SeminarStatus;
+import util.AppConfig;
+import util.DefaultData;
 import util.FileUtils;
 
 import java.nio.file.Path;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 public class SeminarRepository {
-    private final Path seminarFile = Path.of("data/seminars.csv");
+    private final Path seminarFile;
     private final List<Seminar> seminars;
 
     public SeminarRepository() {
+        this(AppConfig.SEMINARS_FILE);
+    }
+
+    public SeminarRepository(Path seminarFile) {
+        this.seminarFile = seminarFile;
         seminars = new ArrayList<>();
         load();
         seedDefaults();
@@ -30,10 +35,7 @@ public class SeminarRepository {
 
     private void seedDefaults() {
         if (seminars.isEmpty()) {
-            seminars.add(new Seminar("SEM-001", "AI for Healthcare", "stu1", "Using ML for diagnosis", "Dr. Smith", "Oral",
-                    "Auditorium", LocalDate.now().plusDays(10), SeminarStatus.OPEN));
-            seminars.add(new Seminar("SEM-002", "Blockchain Security", "stu1", "Ledger analysis", "Dr. Tan", "Poster",
-                    "Gallery", LocalDate.now().plusDays(15), SeminarStatus.OPEN));
+            seminars.addAll(DefaultData.defaultSeminars());
             save();
         }
     }

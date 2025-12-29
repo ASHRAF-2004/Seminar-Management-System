@@ -1,5 +1,7 @@
 package model;
 
+import util.AppConfig;
+
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -29,7 +31,7 @@ public class Session {
     }
 
     public static Session createNew(LocalDate date, String venueCode, SessionType type) {
-        return new Session(UUID.randomUUID().toString(), date, LocalTime.of(9, 0), LocalTime.of(10, 0), venueCode, type, new ArrayList<>(), new ArrayList<>());
+        return new Session(UUID.randomUUID().toString(), date, AppConfig.DEFAULT_SESSION_START, AppConfig.DEFAULT_SESSION_END, venueCode, type, new ArrayList<>(), new ArrayList<>());
     }
 
     public String getId() {
@@ -128,7 +130,7 @@ public class Session {
                     evaluators.add(e);
                 }
             }
-            return new Session(parts[0], LocalDate.parse(parts[1]), LocalTime.of(9, 0), LocalTime.of(10, 0), parts[2], SessionType.valueOf(parts[3]), submissions, evaluators);
+            return new Session(parts[0], LocalDate.parse(parts[1]), AppConfig.DEFAULT_SESSION_START, AppConfig.DEFAULT_SESSION_END, parts[2], SessionType.valueOf(parts[3]), submissions, evaluators);
         }
         List<String> submissions = new ArrayList<>();
         if (!parts[6].isBlank()) {
