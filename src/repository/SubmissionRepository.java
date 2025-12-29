@@ -1,48 +1,41 @@
 package repository;
 
 import model.Submission;
+import util.AppConfig;
+import util.FileUtils;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 public class SubmissionRepository {
-    private static final String FILE = "data/submissions.csv";
+    private final Path submissionFile;
 
     public SubmissionRepository() {
-        // ensure file exists
-        try {
-            new java.io.File(FILE).createNewFile();
-        } catch (IOException ignored) {
-        }
+        this(AppConfig.SUBMISSIONS_FILE);
+    }
+
+    public SubmissionRepository(Path submissionFile) {
+        this.submissionFile = submissionFile;
     }
 
     public synchronized List<Submission> findAll() {
         List<Submission> submissions = new ArrayList<>();
-        try (BufferedReader br = new BufferedReader(new FileReader(FILE))) {
-            String line;
-            while ((line = br.readLine()) != null) {
-                if (line.isBlank()) continue;
+        for (String line : FileUtils.readAllLines(submissionFile)) {
+            if (!line.isBlank()) {
                 submissions.add(Submission.fromCsv(line));
             }
-        } catch (IOException e) {
-            throw new RuntimeException("Unable to read submissions", e);
         }
         return submissions;
     }
 
     public synchronized void saveAll(List<Submission> submissions) {
-        try (FileWriter fw = new FileWriter(FILE, false)) {
-            for (Submission s : submissions) {
-                fw.write(s.toCsv() + System.lineSeparator());
-            }
-        } catch (IOException e) {
-            throw new RuntimeException("Unable to save submissions", e);
+        List<String> lines = new ArrayList<>();
+        for (Submission s : submissions) {
+            lines.add(s.toCsv());
         }
+        FileUtils.writeLines(submissionFile, lines);
     }
 
     public synchronized void upsert(Submission submission) {

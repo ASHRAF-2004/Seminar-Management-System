@@ -70,5 +70,12 @@ Run the app with the provided OS-specific helpers in `scripts/`:
 
 Each script compiles sources into `out/` and starts `ui.Main`. On first use, make the shell scripts executable (`chmod +x scripts/run-*.sh`).
 
+## Configuration
+Editable defaults are centralized in `src/util/AppConfig.java`:
+- CSV file locations for users, seminars, sessions, enrollments, submissions, evaluations, and awards.
+- Default session start/end times used when generating new sessions or loading legacy rows missing explicit times.
+
+Default seed values (initial users and seminars) live in `src/util/DefaultData.java`; adjust them to change the out-of-box experience.
+
 ## Resetting data
 Delete the CSV files under `data/` to restore the seeded defaults on the next launch.

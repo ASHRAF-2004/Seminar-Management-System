@@ -86,6 +86,10 @@ public class RoleSelectionFrame extends JFrame {
         JButton loginButton = new JButton("Login");
         panel.add(loginButton, gbc);
 
+        gbc.gridy++;
+        JButton registerButton = new JButton("Register as Student");
+        panel.add(registerButton, gbc);
+
         loginButton.addActionListener(e -> {
             Role role = (Role) roleCombo.getSelectedItem();
             String id = idField.getText().trim();
@@ -99,6 +103,8 @@ public class RoleSelectionFrame extends JFrame {
                 openDashboard(role, user.getId());
             }, () -> JOptionPane.showMessageDialog(this, "Invalid credentials", "Error", JOptionPane.ERROR_MESSAGE));
         });
+
+        registerButton.addActionListener(e -> new StudentRegistrationFrame(userRepository).setVisible(true));
 
         add(panel);
     }

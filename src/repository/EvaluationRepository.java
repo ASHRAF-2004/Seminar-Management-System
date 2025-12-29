@@ -1,6 +1,7 @@
 package repository;
 
 import model.Evaluation;
+import util.AppConfig;
 import util.FileUtils;
 
 import java.nio.file.Path;
@@ -12,10 +13,15 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class EvaluationRepository {
-    private final Path evaluationFile = Path.of("data/evaluations.csv");
+    private final Path evaluationFile;
     private final List<Evaluation> evaluations;
 
     public EvaluationRepository() {
+        this(AppConfig.EVALUATIONS_FILE);
+    }
+
+    public EvaluationRepository(Path evaluationFile) {
+        this.evaluationFile = evaluationFile;
         evaluations = new ArrayList<>();
         load();
     }
