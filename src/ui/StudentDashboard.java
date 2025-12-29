@@ -10,6 +10,7 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.io.File;
+import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -59,6 +60,9 @@ public class StudentDashboard extends JFrame {
         JButton refreshButton = new JButton("Refresh");
         topPanel.add(refreshButton);
 
+        JButton proposeButton = new JButton("Propose Seminar" );
+        topPanel.add(proposeButton);
+
         add(topPanel, BorderLayout.NORTH);
 
         seminarTable = new JTable(seminarModel);
@@ -93,6 +97,7 @@ public class StudentDashboard extends JFrame {
             loadData();
             loadSubmission();
         });
+        proposeButton.addActionListener(e -> openProposalDialog());
     }
 
     private JPanel buildSubmissionPanel() {
@@ -191,5 +196,34 @@ public class StudentDashboard extends JFrame {
                 }
             }
         });
+    }
+
+    private void openProposalDialog() {
+        JTextField title = new JTextField();
+        JTextField venue = new JTextField();
+        JTextField dateField = new JTextField("2024-12-01");
+        JComboBox<String> type = new JComboBox<>(new String[]{"ORAL", "POSTER"});
+
+        JPanel panel = new JPanel(new GridLayout(0, 2, 5, 5));
+        panel.add(new JLabel("Title"));
+        panel.add(title);
+        panel.add(new JLabel("Venue"));
+        panel.add(venue);
+        panel.add(new JLabel("Date (yyyy-mm-dd)"));
+        panel.add(dateField);
+        panel.add(new JLabel("Type"));
+        panel.add(type);
+
+        int result = JOptionPane.showConfirmDialog(this, panel, "Propose Seminar", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+        if (result == JOptionPane.OK_OPTION) {
+            try {
+                LocalDate date = LocalDate.parse(dateField.getText().trim());
+                seminarService.createStudentProposal(title.getText().trim(), studentId, venue.getText().trim(), date, (String) type.getSelectedItem());
+                JOptionPane.showMessageDialog(this, "Proposal submitted for coordinator approval (saved as draft)");
+                loadData();
+            } catch (Exception ex) {
+                JOptionPane.showMessageDialog(this, "Invalid details: " + ex.getMessage());
+            }
+        }
     }
 }

@@ -8,10 +8,17 @@ public class Evaluation {
     private int methodology;
     private int results;
     private int presentation;
+    private int posterDesign;
+    private String posterCriteria;
     private String comments;
 
     public Evaluation(String id, String seminarId, String evaluatorId, int problemClarity, int methodology, int results,
                       int presentation, String comments) {
+        this(id, seminarId, evaluatorId, problemClarity, methodology, results, presentation, 0, "", comments);
+    }
+
+    public Evaluation(String id, String seminarId, String evaluatorId, int problemClarity, int methodology, int results,
+                      int presentation, int posterDesign, String posterCriteria, String comments) {
         this.id = id;
         this.seminarId = seminarId;
         this.evaluatorId = evaluatorId;
@@ -19,6 +26,8 @@ public class Evaluation {
         this.methodology = methodology;
         this.results = results;
         this.presentation = presentation;
+        this.posterDesign = posterDesign;
+        this.posterCriteria = posterCriteria;
         this.comments = comments;
     }
 
@@ -66,6 +75,22 @@ public class Evaluation {
         this.presentation = presentation;
     }
 
+    public int getPosterDesign() {
+        return posterDesign;
+    }
+
+    public void setPosterDesign(int posterDesign) {
+        this.posterDesign = posterDesign;
+    }
+
+    public String getPosterCriteria() {
+        return posterCriteria;
+    }
+
+    public void setPosterCriteria(String posterCriteria) {
+        this.posterCriteria = posterCriteria;
+    }
+
     public String getComments() {
         return comments;
     }
@@ -75,13 +100,20 @@ public class Evaluation {
     }
 
     public double getAverageScore() {
-        return (problemClarity + methodology + results + presentation) / 4.0;
+        int categories = 4;
+        int total = problemClarity + methodology + results + presentation;
+        if (posterDesign > 0) {
+            categories++;
+            total += posterDesign;
+        }
+        return total / (double) categories;
     }
 
     public String toCsv() {
         return String.join("|", id, seminarId, evaluatorId,
                 String.valueOf(problemClarity), String.valueOf(methodology),
-                String.valueOf(results), String.valueOf(presentation), comments.replace("|", "/"));
+                String.valueOf(results), String.valueOf(presentation), String.valueOf(posterDesign),
+                posterCriteria.replace("|", "/"), comments.replace("|", "/"));
     }
 
     public static Evaluation fromCsv(String line) {
@@ -89,8 +121,13 @@ public class Evaluation {
         if (parts.length < 8) {
             throw new IllegalArgumentException("Invalid evaluation row");
         }
+        if (parts.length < 10) {
+            return new Evaluation(parts[0], parts[1], parts[2],
+                    Integer.parseInt(parts[3]), Integer.parseInt(parts[4]), Integer.parseInt(parts[5]),
+                    Integer.parseInt(parts[6]), parts[7]);
+        }
         return new Evaluation(parts[0], parts[1], parts[2],
                 Integer.parseInt(parts[3]), Integer.parseInt(parts[4]), Integer.parseInt(parts[5]),
-                Integer.parseInt(parts[6]), parts[7]);
+                Integer.parseInt(parts[6]), Integer.parseInt(parts[7]), parts[8], parts[9]);
     }
 }
