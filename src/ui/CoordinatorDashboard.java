@@ -11,6 +11,8 @@ import service.EnrollmentService;
 import service.SessionService;
 import service.SubmissionService;
 import service.SeminarService;
+import service.AwardService;
+import service.ReportService;
 import util.VenueCode;
 
 import javax.swing.*;
@@ -27,6 +29,8 @@ public class CoordinatorDashboard extends JFrame {
     private final EnrollmentService enrollmentService;
     private final SubmissionService submissionService;
     private final SessionService sessionService;
+    private final AwardService awardService;
+    private final ReportService reportService;
     private final UserRepository userRepository;
     private final DefaultTableModel seminarModel;
     private final DefaultTableModel participantModel;
@@ -34,16 +38,19 @@ public class CoordinatorDashboard extends JFrame {
 
     public CoordinatorDashboard(SeminarService seminarService, EnrollmentService enrollmentService,
                                 SubmissionService submissionService, SessionService sessionService,
+                                AwardService awardService, ReportService reportService,
                                 UserRepository userRepository) {
         super("Coordinator Dashboard");
         this.seminarService = seminarService;
         this.enrollmentService = enrollmentService;
         this.submissionService = submissionService;
         this.sessionService = sessionService;
+        this.awardService = awardService;
+        this.reportService = reportService;
         this.userRepository = userRepository;
         this.seminarModel = new DefaultTableModel(new Object[]{"ID", "Title", "Date", "Venue", "Status"}, 0);
         this.participantModel = new DefaultTableModel(new Object[]{"Enrollment", "Student", "Seminar", "Status"}, 0);
-        this.sessionModel = new DefaultTableModel(new Object[]{"ID", "Date", "Venue", "Type", "Submissions", "Evaluators"}, 0);
+        this.sessionModel = new DefaultTableModel(new Object[]{"ID", "Date", "Start", "End", "Venue", "Type", "Submissions", "Evaluators"}, 0);
         buildUi();
         loadSeminars();
         loadSessions();
@@ -58,6 +65,7 @@ public class CoordinatorDashboard extends JFrame {
         JTabbedPane tabs = new JTabbedPane();
         tabs.addTab("Seminars", buildSeminarPanel());
         tabs.addTab("Sessions", buildSessionPanel());
+        tabs.addTab("Reports", buildReportPanel());
         add(tabs, BorderLayout.CENTER);
     }
 
@@ -103,10 +111,12 @@ public class CoordinatorDashboard extends JFrame {
         JButton edit = new JButton("Edit Session");
         JButton delete = new JButton("Delete");
         JButton assign = new JButton("Assign presenters/evaluators");
+        JButton exportSchedule = new JButton("Export Schedule");
         top.add(add);
         top.add(edit);
         top.add(delete);
         top.add(assign);
+        top.add(exportSchedule);
         panel.add(top, BorderLayout.NORTH);
 
         JTable sessionTable = new JTable(sessionModel);
@@ -137,6 +147,39 @@ public class CoordinatorDashboard extends JFrame {
             }
             String id = (String) sessionModel.getValueAt(row, 0);
             sessionService.findById(id).ifPresent(this::openAssignmentDialog);
+        });
+        exportSchedule.addActionListener(e -> {
+            JFileChooser chooser = new JFileChooser();
+            chooser.setDialogTitle("Export schedule CSV");
+            if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
+                reportService.exportSchedule(chooser.getSelectedFile().getAbsolutePath());
+                JOptionPane.showMessageDialog(this, "Schedule exported");
+            }
+        });
+        return panel;
+    }
+
+    private JPanel buildReportPanel() {
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JButton exportEvaluations = new JButton("Export Evaluation Report");
+        JButton exportAwards = new JButton("Export Award Agenda");
+        panel.add(exportEvaluations);
+        panel.add(exportAwards);
+
+        exportEvaluations.addActionListener(e -> {
+            JFileChooser chooser = new JFileChooser();
+            if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
+                reportService.exportEvaluationReport(chooser.getSelectedFile().getAbsolutePath());
+                JOptionPane.showMessageDialog(this, "Evaluation report exported");
+            }
+        });
+
+        exportAwards.addActionListener(e -> {
+            JFileChooser chooser = new JFileChooser();
+            if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
+                reportService.exportAwardAgenda(chooser.getSelectedFile().getAbsolutePath());
+                JOptionPane.showMessageDialog(this, "Award agenda exported");
+            }
         });
         return panel;
     }
@@ -172,6 +215,8 @@ public class CoordinatorDashboard extends JFrame {
             sessionModel.addRow(new Object[]{
                     session.getId(),
                     session.getDate().toString(),
+                    session.getStartTime().toString(),
+                    session.getEndTime().toString(),
                     session.getVenueCode(),
                     session.getSessionType(),
                     session.getSubmissionIds().size(),
@@ -264,6 +309,8 @@ public class CoordinatorDashboard extends JFrame {
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
         JTextField dateField = new JTextField(session != null ? session.getDate().toString() : LocalDate.now().plusDays(1).toString());
+        JTextField startField = new JTextField(session != null ? session.getStartTime().toString() : "09:00");
+        JTextField endField = new JTextField(session != null ? session.getEndTime().toString() : "10:00");
         JTextField venueField = new JTextField(session != null ? session.getVenueCode() : "CQCR1024");
         JComboBox<SessionType> typeBox = new JComboBox<>(SessionType.values());
         if (session != null) {
@@ -274,6 +321,10 @@ public class CoordinatorDashboard extends JFrame {
         int y = 0;
         gbc.gridx = 0; gbc.gridy = y; dialog.add(new JLabel("Date (yyyy-MM-dd)"), gbc);
         gbc.gridx = 1; dialog.add(dateField, gbc); y++;
+        gbc.gridx = 0; gbc.gridy = y; dialog.add(new JLabel("Start (HH:mm)"), gbc);
+        gbc.gridx = 1; dialog.add(startField, gbc); y++;
+        gbc.gridx = 0; gbc.gridy = y; dialog.add(new JLabel("End (HH:mm)"), gbc);
+        gbc.gridx = 1; dialog.add(endField, gbc); y++;
         gbc.gridx = 0; gbc.gridy = y; dialog.add(new JLabel("Venue Code"), gbc);
         gbc.gridx = 1; dialog.add(venueField, gbc); y++;
         gbc.gridx = 0; gbc.gridy = y; dialog.add(new JLabel("Session Type"), gbc);
@@ -286,14 +337,21 @@ public class CoordinatorDashboard extends JFrame {
         save.addActionListener(ev -> {
             try {
                 LocalDate date = LocalDate.parse(dateField.getText().trim());
+                java.time.LocalTime start = java.time.LocalTime.parse(startField.getText().trim());
+                java.time.LocalTime end = java.time.LocalTime.parse(endField.getText().trim());
                 if (!VenueCode.isValid(venueField.getText().trim())) {
                     JOptionPane.showMessageDialog(dialog, "Invalid venue code", "Validation", JOptionPane.WARNING_MESSAGE);
                     return;
                 }
                 if (session == null) {
-                    sessionService.create(date, venueField.getText().trim(), (SessionType) typeBox.getSelectedItem());
+                    Session created = sessionService.create(date, venueField.getText().trim(), (SessionType) typeBox.getSelectedItem());
+                    created.setStartTime(start);
+                    created.setEndTime(end);
+                    sessionService.update(created);
                 } else {
                     session.setDate(date);
+                    session.setStartTime(start);
+                    session.setEndTime(end);
                     session.setVenueCode(venueField.getText().trim());
                     session.setSessionType((SessionType) typeBox.getSelectedItem());
                     sessionService.update(session);

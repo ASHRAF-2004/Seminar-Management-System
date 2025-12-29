@@ -10,11 +10,12 @@ public class Submission {
     private String supervisorName;
     private String presentationType;
     private String filePath;
+    private String seminarId;
     private String sessionId;
     private String posterBoardId;
 
     public Submission(String id, String studentId, String researchTitle, String abstractText, String supervisorName,
-                      String presentationType, String filePath, String sessionId, String posterBoardId) {
+                      String presentationType, String filePath, String seminarId, String sessionId, String posterBoardId) {
         this.id = id;
         this.studentId = studentId;
         this.researchTitle = researchTitle;
@@ -22,6 +23,7 @@ public class Submission {
         this.supervisorName = supervisorName;
         this.presentationType = presentationType;
         this.filePath = filePath;
+        this.seminarId = seminarId;
         this.sessionId = sessionId;
         this.posterBoardId = posterBoardId;
     }
@@ -29,7 +31,7 @@ public class Submission {
     public static Submission createNew(String studentId, String researchTitle, String abstractText, String supervisorName,
                                        String presentationType, String filePath) {
         return new Submission(UUID.randomUUID().toString(), studentId, researchTitle, abstractText, supervisorName,
-                presentationType, filePath, "", "");
+                presentationType, filePath, "", "", "");
     }
 
     public String getId() {
@@ -80,6 +82,14 @@ public class Submission {
         this.filePath = filePath;
     }
 
+    public String getSeminarId() {
+        return seminarId;
+    }
+
+    public void setSeminarId(String seminarId) {
+        this.seminarId = seminarId;
+    }
+
     public String getSessionId() {
         return sessionId;
     }
@@ -98,7 +108,7 @@ public class Submission {
 
     public String toCsv() {
         return String.join("|", id, studentId, safe(researchTitle), safe(abstractText), safe(supervisorName),
-                presentationType, safe(filePath), sessionId == null ? "" : sessionId, posterBoardId == null ? "" : posterBoardId);
+                presentationType, safe(filePath), seminarId == null ? "" : seminarId, sessionId == null ? "" : sessionId, posterBoardId == null ? "" : posterBoardId);
     }
 
     public static Submission fromCsv(String line) {
@@ -106,7 +116,10 @@ public class Submission {
         if (parts.length < 9) {
             throw new IllegalArgumentException("Invalid submission row");
         }
-        return new Submission(parts[0], parts[1], parts[2], parts[3], parts[4], parts[5], parts[6], parts[7], parts[8]);
+        if (parts.length == 9) {
+            return new Submission(parts[0], parts[1], parts[2], parts[3], parts[4], parts[5], parts[6], "", parts[7], parts[8]);
+        }
+        return new Submission(parts[0], parts[1], parts[2], parts[3], parts[4], parts[5], parts[6], parts[7], parts[8], parts[9]);
     }
 
     private String safe(String value) {

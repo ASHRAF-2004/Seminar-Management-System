@@ -65,4 +65,8 @@ public class EvaluationRepository {
         }
         return grouped;
     }
+
+    public List<Evaluation> findAll() {
+        return new ArrayList<>(evaluations);
+    }
 }

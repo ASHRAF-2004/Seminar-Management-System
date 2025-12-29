@@ -20,6 +20,7 @@ public class StudentDashboard extends JFrame {
     private final String studentId;
     private final DefaultTableModel seminarModel;
     private final DefaultTableModel enrollmentModel;
+    private JTable seminarTable;
 
     private JTextField titleField;
     private JTextField abstractField;
@@ -60,7 +61,7 @@ public class StudentDashboard extends JFrame {
 
         add(topPanel, BorderLayout.NORTH);
 
-        JTable seminarTable = new JTable(seminarModel);
+        seminarTable = new JTable(seminarModel);
         JScrollPane seminarScroll = new JScrollPane(seminarTable);
 
         JTable enrollmentTable = new JTable(enrollmentModel);
@@ -157,14 +158,21 @@ public class StudentDashboard extends JFrame {
     }
 
     private void saveSubmission() {
+        int row = seminarTable.getSelectedRow();
+        if (row == -1) {
+            JOptionPane.showMessageDialog(this, "Please select a seminar to register your research for", "Validation", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
         if (titleField.getText().isBlank() || abstractField.getText().isBlank() || supervisorField.getText().isBlank()) {
             JOptionPane.showMessageDialog(this, "Please fill in all fields", "Validation", JOptionPane.WARNING_MESSAGE);
             return;
         }
+        String seminarId = (String) seminarModel.getValueAt(row, 0);
+        enrollmentService.enroll(seminarId, studentId);
         Submission submission = submissionService.saveOrUpdate(studentId, titleField.getText().trim(),
                 abstractField.getText().trim(), supervisorField.getText().trim(), (String) typeBox.getSelectedItem(),
-                fileField.getText().trim());
-        JOptionPane.showMessageDialog(this, "Submission saved with ID " + submission.getId());
+                fileField.getText().trim(), seminarId);
+        JOptionPane.showMessageDialog(this, "Submission saved with ID " + submission.getId() + " and linked to seminar " + seminarId);
     }
 
     private void loadSubmission() {
@@ -174,6 +182,14 @@ public class StudentDashboard extends JFrame {
             supervisorField.setText(sub.getSupervisorName());
             typeBox.setSelectedItem(sub.getPresentationType().toUpperCase());
             fileField.setText(sub.getFilePath());
+            if (sub.getSeminarId() != null) {
+                for (int i = 0; i < seminarModel.getRowCount(); i++) {
+                    if (sub.getSeminarId().equals(seminarModel.getValueAt(i, 0))) {
+                        seminarTable.setRowSelectionInterval(i, i);
+                        break;
+                    }
+                }
+            }
         });
     }
 }

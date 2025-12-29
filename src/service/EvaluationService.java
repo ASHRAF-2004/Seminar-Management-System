@@ -47,4 +47,8 @@ public class EvaluationService {
         }
         return averages;
     }
+
+    public List<Evaluation> findAll() {
+        return repository.findAll();
+    }
 }

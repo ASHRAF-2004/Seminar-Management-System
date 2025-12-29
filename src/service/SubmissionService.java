@@ -14,7 +14,7 @@ public class SubmissionService {
     }
 
     public Submission saveOrUpdate(String studentId, String title, String abstractText, String supervisor, String type,
-                                   String filePath) {
+                                   String filePath, String seminarId) {
         Optional<Submission> existing = repository.findByStudent(studentId);
         Submission submission = existing.orElseGet(() -> Submission.createNew(studentId, title, abstractText, supervisor, type, filePath));
         submission.setResearchTitle(title);
@@ -22,6 +22,7 @@ public class SubmissionService {
         submission.setSupervisorName(supervisor);
         submission.setPresentationType(type);
         submission.setFilePath(filePath);
+        submission.setSeminarId(seminarId);
         repository.upsert(submission);
         return submission;
     }

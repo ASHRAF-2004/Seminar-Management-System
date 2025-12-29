@@ -14,6 +14,7 @@ import service.SessionService;
 import service.SubmissionService;
 import service.SeminarService;
 import service.AwardService;
+import service.ReportService;
 
 import javax.swing.SwingUtilities;
 
@@ -35,9 +36,10 @@ public class Main {
             SubmissionService submissionService = new SubmissionService(submissionRepository);
             SessionService sessionService = new SessionService(sessionRepository);
             AwardService awardService = new AwardService(awardRepository, evaluationService);
+            ReportService reportService = new ReportService(sessionService, submissionService, evaluationService, awardService);
 
             new RoleSelectionFrame(authService, seminarService, enrollmentService, evaluationService, submissionService,
-                    sessionService, userRepository)
+                    sessionService, awardService, reportService, userRepository)
                     .setVisible(true);
         });
     }
