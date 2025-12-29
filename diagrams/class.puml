@@ -1,57 +1,67 @@
 @startuml
-package model {
+skinparam classAttributeIconSize 0
+package "model" {
     class User {
-        -id: String
-        -name: String
-        -role: Role
-        -password: String
+        - id: String
+        - name: String
+        - role: Role
+        - password: String
     }
-    enum Role {STUDENT; EVALUATOR; COORDINATOR}
-    enum SeminarStatus {DRAFT; OPEN; CLOSED; COMPLETED}
+    enum Role {
+        STUDENT
+        EVALUATOR
+        COORDINATOR
+    }
+    enum SeminarStatus {
+        DRAFT
+        OPEN
+        CLOSED
+        COMPLETED
+    }
     class Seminar {
-        -id: String
-        -title: String
-        -presenterId: String
-        -abstractText: String
-        -supervisor: String
-        -presentationType: String
-        -venue: String
-        -date: LocalDate
-        -status: SeminarStatus
+        - id: String
+        - title: String
+        - presenterId: String
+        - abstractText: String
+        - supervisor: String
+        - presentationType: String
+        - venue: String
+        - date: LocalDate
+        - status: SeminarStatus
     }
     class Enrollment {
-        -id: String
-        -seminarId: String
-        -studentId: String
-        -status: String
+        - id: String
+        - seminarId: String
+        - studentId: String
+        - status: String
     }
     class Evaluation {
-        -id: String
-        -seminarId: String
-        -evaluatorId: String
-        -problemClarity: int
-        -methodology: int
-        -results: int
-        -presentation: int
-        -comments: String
+        - id: String
+        - seminarId: String
+        - evaluatorId: String
+        - problemClarity: int
+        - methodology: int
+        - results: int
+        - presentation: int
+        - comments: String
     }
 }
 
-package repository {
+package "repository" {
     class UserRepository
     class SeminarRepository
     class EnrollmentRepository
     class EvaluationRepository
 }
 
-package service {
+package "service" {
     class AuthService
     class SeminarService
     class EnrollmentService
     class EvaluationService
 }
 
-package ui {
+package "ui" {
     class RoleSelectionFrame
     class StudentDashboard
     class CoordinatorDashboard
@@ -59,7 +69,7 @@ package ui {
     class Main
 }
 
-UserRepository --> User
+UserRepository --> User : maps CSV rows
 SeminarRepository --> Seminar
 EnrollmentRepository --> Enrollment
 EvaluationRepository --> Evaluation
@@ -70,10 +80,6 @@ EnrollmentService --> EnrollmentRepository
 EvaluationService --> EvaluationRepository
 
 RoleSelectionFrame --> AuthService
-RoleSelectionFrame --> SeminarService
-RoleSelectionFrame --> EnrollmentService
-RoleSelectionFrame --> EvaluationService
-RoleSelectionFrame --> UserRepository
 StudentDashboard --> SeminarService
 StudentDashboard --> EnrollmentService
 CoordinatorDashboard --> SeminarService
@@ -81,10 +87,10 @@ CoordinatorDashboard --> EnrollmentService
 CoordinatorDashboard --> UserRepository
 EvaluatorDashboard --> SeminarService
 EvaluatorDashboard --> EvaluationService
+Main --> RoleSelectionFrame
 
-Enrollment "*" --> Seminar
-Evaluation "*" --> Seminar
+Enrollment "*" --> Seminar : enrols in
+Evaluation "*" --> Seminar : assesses
 User "1" --> Role
 Seminar --> SeminarStatus
-
 @enduml
