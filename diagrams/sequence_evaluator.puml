@@ -1,18 +1,23 @@
 @startuml
 actor Evaluator
-participant RoleSelectionFrame
 participant EvaluatorDashboard
 participant EvaluationService
 participant EvaluationRepository
+participant SeminarService
+participant SeminarRepository
 
-Evaluator -> RoleSelectionFrame: login as evaluator
-RoleSelectionFrame -> EvaluatorDashboard: open()
-Evaluator -> EvaluatorDashboard: select seminar + evaluate
-EvaluatorDashboard -> EvaluationService: saveEvaluation(seminarId, evaluatorId, scores)
-EvaluationService -> EvaluationRepository: findBySeminarAndEvaluator
-EvaluationRepository --> EvaluationService: existing/new
-EvaluationService -> EvaluationRepository: addOrUpdate(evaluation)
-EvaluationRepository --> EvaluationService: saved
-EvaluationService --> EvaluatorDashboard: evaluation with average
-EvaluatorDashboard --> Evaluator: display confirmation
+Evaluator -> EvaluatorDashboard : select seminar & click Evaluate
+EvaluatorDashboard -> EvaluationService : loadEvaluation(seminarId, evaluatorId)
+EvaluationService -> EvaluationRepository : findBySeminarAndEvaluator()
+EvaluationRepository --> EvaluationService : existing evaluation (optional)
+EvaluationService --> EvaluatorDashboard : pre-fill scores/comments
+Evaluator --> EvaluatorDashboard : enter scores & comments
+EvaluatorDashboard -> EvaluationService : saveEvaluation(evaluation)
+EvaluationService -> EvaluationRepository : save(evaluation)
+EvaluationRepository --> EvaluationService : persisted evaluation
+EvaluationService --> EvaluatorDashboard : average score
+EvaluatorDashboard -> SeminarService : refreshSeminars()
+SeminarService -> SeminarRepository : getAll()
+SeminarRepository --> SeminarService : seminar list
+SeminarService --> EvaluatorDashboard : update view
 @enduml

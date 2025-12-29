@@ -4,15 +4,19 @@ participant StudentDashboard
 participant EnrollmentService
 participant EnrollmentRepository
 participant SeminarService
+participant SeminarRepository
 
-Student -> StudentDashboard: select seminar + enroll
-StudentDashboard -> EnrollmentService: enroll(seminarId, studentId)
-EnrollmentService -> EnrollmentRepository: findBySeminarAndStudent
-EnrollmentRepository --> EnrollmentService: existing?/null
-EnrollmentService -> EnrollmentRepository: add(new Enrollment)
-EnrollmentRepository --> EnrollmentService: saved
-EnrollmentService --> StudentDashboard: enrollment
-StudentDashboard -> SeminarService: getAll()
-SeminarService --> StudentDashboard: list
-StudentDashboard --> Student: show confirmation + enrollment list
+Student -> StudentDashboard : select seminar & click Enroll
+StudentDashboard -> EnrollmentService : createEnrollment(studentId, seminarId)
+EnrollmentService -> EnrollmentRepository : save(enrollment)
+EnrollmentRepository --> EnrollmentService : persisted enrollment
+EnrollmentService --> StudentDashboard : enrolment status
+StudentDashboard -> EnrollmentService : loadEnrollments(studentId)
+EnrollmentService -> EnrollmentRepository : findByStudent(studentId)
+EnrollmentRepository --> EnrollmentService : enrolment list
+EnrollmentService --> StudentDashboard : refresh table
+StudentDashboard -> SeminarService : loadSeminars()
+SeminarService -> SeminarRepository : getAll()
+SeminarRepository --> SeminarService : seminar list
+SeminarService --> StudentDashboard : update availability
 @enduml
