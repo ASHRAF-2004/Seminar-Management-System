@@ -17,17 +17,24 @@ public class EvaluationService {
     }
 
     public Evaluation saveEvaluation(String seminarId, String evaluatorId, int clarity, int methodology, int results,
-                                     int presentation, String comments) {
+                                     int presentation, int posterDesign, String posterCriteria, String comments) {
         Evaluation evaluation = repository.findBySeminarAndEvaluator(seminarId, evaluatorId)
                 .orElse(new Evaluation(IdGenerator.newId("EV-"), seminarId, evaluatorId, clarity, methodology, results,
-                        presentation, comments));
+                        presentation, posterDesign, posterCriteria, comments));
         evaluation.setProblemClarity(clarity);
         evaluation.setMethodology(methodology);
         evaluation.setResults(results);
         evaluation.setPresentation(presentation);
+        evaluation.setPosterDesign(posterDesign);
+        evaluation.setPosterCriteria(posterCriteria);
         evaluation.setComments(comments);
         repository.addOrUpdate(evaluation);
         return evaluation;
+    }
+
+    public Evaluation saveEvaluation(String seminarId, String evaluatorId, int clarity, int methodology, int results,
+                                     int presentation, String comments) {
+        return saveEvaluation(seminarId, evaluatorId, clarity, methodology, results, presentation, 0, "", comments);
     }
 
     public List<Evaluation> findBySeminar(String seminarId) {

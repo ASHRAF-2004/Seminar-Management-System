@@ -1,5 +1,7 @@
 package ui;
 
+import model.Award;
+import model.AwardType;
 import model.Enrollment;
 import model.Role;
 import model.Session;
@@ -35,6 +37,7 @@ public class CoordinatorDashboard extends JFrame {
     private final DefaultTableModel seminarModel;
     private final DefaultTableModel participantModel;
     private final DefaultTableModel sessionModel;
+    private final DefaultTableModel awardModel;
 
     public CoordinatorDashboard(SeminarService seminarService, EnrollmentService enrollmentService,
                                 SubmissionService submissionService, SessionService sessionService,
@@ -51,9 +54,11 @@ public class CoordinatorDashboard extends JFrame {
         this.seminarModel = new DefaultTableModel(new Object[]{"ID", "Title", "Date", "Venue", "Status"}, 0);
         this.participantModel = new DefaultTableModel(new Object[]{"Enrollment", "Student", "Seminar", "Status"}, 0);
         this.sessionModel = new DefaultTableModel(new Object[]{"ID", "Date", "Start", "End", "Venue", "Type", "Submissions", "Evaluators"}, 0);
+        this.awardModel = new DefaultTableModel(new Object[]{"ID", "Type", "Submission", "Session"}, 0);
         buildUi();
         loadSeminars();
         loadSessions();
+        loadAwards();
     }
 
     private void buildUi() {
@@ -65,6 +70,7 @@ public class CoordinatorDashboard extends JFrame {
         JTabbedPane tabs = new JTabbedPane();
         tabs.addTab("Seminars", buildSeminarPanel());
         tabs.addTab("Sessions", buildSessionPanel());
+        tabs.addTab("Awards", buildAwardPanel());
         tabs.addTab("Reports", buildReportPanel());
         add(tabs, BorderLayout.CENTER);
     }
@@ -163,8 +169,10 @@ public class CoordinatorDashboard extends JFrame {
         JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT));
         JButton exportEvaluations = new JButton("Export Evaluation Report");
         JButton exportAwards = new JButton("Export Award Agenda");
+        JButton exportSummary = new JButton("Export Summary");
         panel.add(exportEvaluations);
         panel.add(exportAwards);
+        panel.add(exportSummary);
 
         exportEvaluations.addActionListener(e -> {
             JFileChooser chooser = new JFileChooser();
@@ -181,6 +189,41 @@ public class CoordinatorDashboard extends JFrame {
                 JOptionPane.showMessageDialog(this, "Award agenda exported");
             }
         });
+        exportSummary.addActionListener(e -> {
+            JFileChooser chooser = new JFileChooser();
+            if (chooser.showSaveDialog(this) == JFileChooser.APPROVE_OPTION) {
+                reportService.exportSummary(chooser.getSelectedFile().getAbsolutePath());
+                JOptionPane.showMessageDialog(this, "Summary exported");
+            }
+        });
+        return panel;
+    }
+
+    private JPanel buildAwardPanel() {
+        JPanel panel = new JPanel(new BorderLayout());
+        JPanel top = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        JButton add = new JButton("Nominate Winner");
+        JButton edit = new JButton("Edit");
+        JButton refresh = new JButton("Refresh");
+        top.add(add);
+        top.add(edit);
+        top.add(refresh);
+        panel.add(top, BorderLayout.NORTH);
+
+        JTable table = new JTable(awardModel);
+        panel.add(new JScrollPane(table), BorderLayout.CENTER);
+
+        add.addActionListener(e -> openAwardDialog(null));
+        edit.addActionListener(e -> {
+            int row = table.getSelectedRow();
+            if (row == -1) {
+                JOptionPane.showMessageDialog(this, "Select an award to edit");
+                return;
+            }
+            String id = (String) awardModel.getValueAt(row, 0);
+            awardService.findAll().stream().filter(a -> a.getId().equals(id)).findFirst().ifPresent(this::openAwardDialog);
+        });
+        refresh.addActionListener(e -> loadAwards());
         return panel;
     }
 
@@ -222,6 +265,13 @@ public class CoordinatorDashboard extends JFrame {
                     session.getSubmissionIds().size(),
                     session.getEvaluatorIds().size()
             });
+        }
+    }
+
+    private void loadAwards() {
+        awardModel.setRowCount(0);
+        for (model.Award award : awardService.findAll()) {
+            awardModel.addRow(new Object[]{award.getId(), award.getAwardType(), award.getSubmissionId(), award.getSessionId()});
         }
     }
 
@@ -423,6 +473,70 @@ public class CoordinatorDashboard extends JFrame {
             sessionService.update(session);
             dialog.dispose();
             loadSessions();
+        });
+
+        dialog.setVisible(true);
+    }
+
+    private void openAwardDialog(Award award) {
+        JDialog dialog = new JDialog(this, award == null ? "Nominate Award" : "Edit Award", true);
+        dialog.setSize(400, 300);
+        dialog.setLocationRelativeTo(this);
+        dialog.setLayout(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        JComboBox<AwardType> typeBox = new JComboBox<>(AwardType.values());
+        List<Submission> submissions = submissionService.getAll();
+        JComboBox<String> submissionBox = new JComboBox<>(submissions.stream()
+                .map(s -> s.getId() + " - " + s.getResearchTitle())
+                .toArray(String[]::new));
+        List<Session> sessions = sessionService.findAll();
+        JComboBox<String> sessionBox = new JComboBox<>(sessions.stream()
+                .map(s -> s.getId() + " (" + s.getSessionType() + ")")
+                .toArray(String[]::new));
+
+        if (award != null) {
+            typeBox.setSelectedItem(award.getAwardType());
+            for (int i = 0; i < submissionBox.getItemCount(); i++) {
+                if (submissionBox.getItemAt(i).startsWith(award.getSubmissionId())) {
+                    submissionBox.setSelectedIndex(i);
+                    break;
+                }
+            }
+            for (int i = 0; i < sessionBox.getItemCount(); i++) {
+                if (sessionBox.getItemAt(i).startsWith(award.getSessionId())) {
+                    sessionBox.setSelectedIndex(i);
+                    break;
+                }
+            }
+        }
+
+        int y = 0;
+        gbc.gridx = 0; gbc.gridy = y; dialog.add(new JLabel("Award Type"), gbc);
+        gbc.gridx = 1; dialog.add(typeBox, gbc); y++;
+        gbc.gridx = 0; gbc.gridy = y; dialog.add(new JLabel("Submission"), gbc);
+        gbc.gridx = 1; dialog.add(submissionBox, gbc); y++;
+        gbc.gridx = 0; gbc.gridy = y; dialog.add(new JLabel("Session"), gbc);
+        gbc.gridx = 1; dialog.add(sessionBox, gbc); y++;
+
+        JButton save = new JButton("Save");
+        gbc.gridx = 0; gbc.gridy = y; gbc.gridwidth = 2; dialog.add(save, gbc);
+
+        save.addActionListener(ev -> {
+            if (submissionBox.getSelectedIndex() == -1 || sessionBox.getSelectedIndex() == -1) {
+                JOptionPane.showMessageDialog(dialog, "Please select submission and session");
+                return;
+            }
+            String submissionId = submissions.get(submissionBox.getSelectedIndex()).getId();
+            String sessionId = sessions.get(sessionBox.getSelectedIndex()).getId();
+            AwardType type = (AwardType) typeBox.getSelectedItem();
+            Award updated = award != null ? award : Award.createNew(submissionId, sessionId, type);
+            updated.setAwardType(type);
+            awardService.save(updated);
+            dialog.dispose();
+            loadAwards();
         });
 
         dialog.setVisible(true);

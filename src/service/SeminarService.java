@@ -32,6 +32,10 @@ public class SeminarService {
         return seminar;
     }
 
+    public Seminar createStudentProposal(String title, String presenterId, String venue, LocalDate date, String presentationType) {
+        return create(title, presenterId, "", "", presentationType, venue, date, SeminarStatus.DRAFT);
+    }
+
     public void update(Seminar seminar) {
         repository.update(seminar);
     }

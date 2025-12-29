@@ -101,6 +101,8 @@ public class EvaluatorDashboard extends JFrame {
         JSpinner methodology = new JSpinner(new SpinnerNumberModel(3, 1, 5, 1));
         JSpinner results = new JSpinner(new SpinnerNumberModel(3, 1, 5, 1));
         JSpinner presentation = new JSpinner(new SpinnerNumberModel(3, 1, 5, 1));
+        JSpinner posterDesign = new JSpinner(new SpinnerNumberModel(3, 1, 5, 1));
+        JTextArea posterCriteria = new JTextArea(3, 20);
         JTextArea comments = new JTextArea(5, 20);
 
         evaluationService.findBySeminarAndEvaluator(submission.getId(), evaluatorId).ifPresent(existing -> {
@@ -108,6 +110,10 @@ public class EvaluatorDashboard extends JFrame {
             methodology.setValue(existing.getMethodology());
             results.setValue(existing.getResults());
             presentation.setValue(existing.getPresentation());
+            if (existing.getPosterDesign() > 0) {
+                posterDesign.setValue(existing.getPosterDesign());
+            }
+            posterCriteria.setText(existing.getPosterCriteria());
             comments.setText(existing.getComments());
         });
 
@@ -126,6 +132,13 @@ public class EvaluatorDashboard extends JFrame {
         gbc.gridx = 1; dialog.add(results, gbc); y++;
         gbc.gridx = 0; gbc.gridy = y; dialog.add(new JLabel("Presentation"), gbc);
         gbc.gridx = 1; dialog.add(presentation, gbc); y++;
+        if ("POSTER".equalsIgnoreCase(submission.getPresentationType())) {
+            gbc.gridx = 0; gbc.gridy = y; dialog.add(new JLabel("Poster Visual Quality"), gbc);
+            gbc.gridx = 1; dialog.add(posterDesign, gbc); y++;
+            gbc.gridx = 0; gbc.gridy = y; gbc.anchor = GridBagConstraints.NORTH; dialog.add(new JLabel("Poster Criteria"), gbc);
+            gbc.gridx = 1; dialog.add(new JScrollPane(posterCriteria), gbc); y++;
+            gbc.anchor = GridBagConstraints.CENTER;
+        }
         gbc.gridx = 0; gbc.gridy = y; gbc.anchor = GridBagConstraints.NORTH; dialog.add(new JLabel("Comments"), gbc);
         gbc.gridx = 1; dialog.add(new JScrollPane(comments), gbc); y++;
 
@@ -133,9 +146,11 @@ public class EvaluatorDashboard extends JFrame {
         gbc.gridx = 0; gbc.gridy = y; gbc.gridwidth = 2; dialog.add(save, gbc);
 
         save.addActionListener(e -> {
+            int posterScore = "POSTER".equalsIgnoreCase(submission.getPresentationType()) ? (int) posterDesign.getValue() : 0;
+            String rubric = "POSTER".equalsIgnoreCase(submission.getPresentationType()) ? posterCriteria.getText() : "";
             Evaluation eval = evaluationService.saveEvaluation(submission.getId(), evaluatorId,
                     (int) clarity.getValue(), (int) methodology.getValue(), (int) results.getValue(),
-                    (int) presentation.getValue(), comments.getText());
+                    (int) presentation.getValue(), posterScore, rubric, comments.getText());
             JOptionPane.showMessageDialog(dialog, "Saved. Average score: " + eval.getAverageScore());
             dialog.dispose();
         });

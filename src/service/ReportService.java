@@ -97,4 +97,26 @@ public class ReportService {
             throw new RuntimeException("Unable to export award agenda", e);
         }
     }
+
+    public void exportSummary(String path) {
+        try (FileWriter writer = new FileWriter(path)) {
+            writer.write("Evaluation Summary\n");
+            writer.write("Submission,Average,Count\n");
+            Map<String, Double> averages = evaluationService.averageScoresBySeminar();
+            Map<String, Long> counts = evaluationService.findAll().stream()
+                    .collect(Collectors.groupingBy(Evaluation::getSeminarId, Collectors.counting()));
+            for (Map.Entry<String, Double> entry : averages.entrySet()) {
+                long count = counts.getOrDefault(entry.getKey(), 0L);
+                writer.write(entry.getKey() + "," + String.format("%.2f", entry.getValue()) + "," + count + "\n");
+            }
+            writer.write("\nAwards\n");
+            writer.write("Type,Submission,Session\n");
+            for (Award award : awardService.findAll()) {
+                writer.write(String.join(",", award.getAwardType().name(), award.getSubmissionId(), award.getSessionId()));
+                writer.write("\n");
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Unable to export summary", e);
+        }
+    }
 }

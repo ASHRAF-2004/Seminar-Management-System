@@ -43,6 +43,8 @@ public class EvaluationRepository {
                     existing.setMethodology(evaluation.getMethodology());
                     existing.setResults(evaluation.getResults());
                     existing.setPresentation(evaluation.getPresentation());
+                    existing.setPosterDesign(evaluation.getPosterDesign());
+                    existing.setPosterCriteria(evaluation.getPosterCriteria());
                     existing.setComments(evaluation.getComments());
                 }, () -> evaluations.add(evaluation));
         save();
