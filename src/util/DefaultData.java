@@ -16,7 +16,8 @@ public final class DefaultData {
         return List.of(
                 buildUser("stu1", "Alice Student", Role.STUDENT, "pass"),
                 buildUser("eval1", "Dr. Eva Luator", Role.EVALUATOR, "pass"),
-                buildUser("coord1", "Mr. C Oord", Role.COORDINATOR, "pass")
+                buildUser("coord1", "Mr. C Oord", Role.COORDINATOR, "pass"),
+                buildUser("admin1", "System Admin", Role.ADMIN, "admin123")
         );
     }
 
