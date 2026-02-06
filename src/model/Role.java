@@ -3,6 +3,5 @@ package model;
 public enum Role {
     STUDENT,
     EVALUATOR,
-    COORDINATOR,
-    ADMIN;
+    COORDINATOR;
 }

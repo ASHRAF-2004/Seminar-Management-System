@@ -56,11 +56,10 @@ Compile the sources into an `out` directory, then launch the Swing app. Use the 
 
 If you prefer a one-liner experience, use the OS-specific helper scripts in `scripts/` (see below).
 
-On startup, use any of the seeded accounts:
-- **Student**: `stu1` (password `pass`)
-- **Evaluator**: `eval1` (password `pass`)
-- **Coordinator**: `coord1` (password `pass`)
-- **Admin**: `admin1` (password `admin123`)
+On startup, use any of the seeded accounts (password `pass`):
+- **Student**: `stu1`
+- **Evaluator**: `eval1`
+- **Coordinator**: `coord1`
 
 ## One-click run scripts
 Run the app with the provided OS-specific helpers in `scripts/`:

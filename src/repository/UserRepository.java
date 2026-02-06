@@ -37,19 +37,8 @@ public class UserRepository {
     }
 
     private void seedDefaults() {
-        boolean changed = false;
         if (users.isEmpty()) {
             users.addAll(DefaultData.defaultUsers());
-            changed = true;
-        } else {
-            for (User defaultUser : DefaultData.defaultUsers()) {
-                if (findById(defaultUser.getId()) == null) {
-                    users.add(defaultUser);
-                    changed = true;
-                }
-            }
-        }
-        if (changed) {
             save();
         }
     }
