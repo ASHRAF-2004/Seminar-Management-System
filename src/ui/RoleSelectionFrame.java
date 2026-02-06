@@ -114,7 +114,7 @@ public class RoleSelectionFrame extends JFrame {
         switch (role) {
             case STUDENT -> new StudentDashboard(seminarService, enrollmentService, submissionService, userId).setVisible(true);
             case EVALUATOR -> new EvaluatorDashboard(seminarService, evaluationService, submissionService, sessionService, userId).setVisible(true);
-            case COORDINATOR -> new CoordinatorDashboard(seminarService, enrollmentService, submissionService, sessionService, awardService, reportService, userRepository).setVisible(true);
+            case COORDINATOR, ADMIN -> new CoordinatorDashboard(seminarService, enrollmentService, submissionService, sessionService, awardService, reportService, userRepository).setVisible(true);
             default -> throw new IllegalStateException("Unexpected value: " + role);
         }
     }
