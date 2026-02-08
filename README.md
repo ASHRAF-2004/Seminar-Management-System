@@ -30,10 +30,10 @@ This repository now focuses on the runnable application sources and helper scrip
 Compile and launch the Swing app with a single command from the repository root:
 
 ```bash
-javac -d out -cp src Main.java && java -cp out Main
+javac main.java && java main
 ```
 
-The wrapper `Main.java` delegates to the real Swing entry point (`ui.Main`) and lets `javac` pull in the rest of the sources automatically.
+The wrapper `main.java` delegates to the real Swing entry point (`ui.Main`) and lets `javac` pull in the rest of the sources automatically.
 
 On Windows PowerShell or Command Prompt, the same one-liner works.
 
