@@ -20,6 +20,8 @@ src/
 ```
 Data files live in `data/` and can be cleared to reset the application state.
 
+This repository now focuses on the runnable application sources and helper scripts to keep the project footprint minimal; legacy report and UML diagram artifacts have been removed.
+
 ## Prerequisites
 - Java 17 or later
 - A terminal capable of running `javac` and `java`
