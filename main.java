@@ -24,19 +24,18 @@ public class main {
         }
 
         java.util.List<String> sourceFiles = new java.util.ArrayList<>();
-        java.util.List<String> roots = java.util.Arrays.asList("ui", "model", "repository", "service", "util");
-        for (String root : roots) {
-            java.nio.file.Path rootPath = java.nio.file.Paths.get(root);
-            if (!java.nio.file.Files.exists(rootPath)) {
-                continue;
-            }
-            try (java.util.stream.Stream<java.nio.file.Path> paths = java.nio.file.Files.walk(rootPath)) {
-                paths.filter(path -> path.toString().endsWith(".java"))
-                        .forEach(path -> sourceFiles.add(path.toString()));
-            } catch (java.io.IOException exception) {
-                System.err.println("Failed to read source directory: " + root + " (" + exception.getMessage() + ")");
-                return false;
-            }
+        java.nio.file.Path rootPath = java.nio.file.Paths.get("src");
+        if (!java.nio.file.Files.exists(rootPath)) {
+            System.err.println("Source directory not found: src");
+            return false;
+        }
+
+        try (java.util.stream.Stream<java.nio.file.Path> paths = java.nio.file.Files.walk(rootPath)) {
+            paths.filter(path -> path.toString().endsWith(".java"))
+                    .forEach(path -> sourceFiles.add(path.toString()));
+        } catch (java.io.IOException exception) {
+            System.err.println("Failed to read source directory: src (" + exception.getMessage() + ")");
+            return false;
         }
 
         if (sourceFiles.isEmpty()) {
@@ -45,8 +44,12 @@ public class main {
         }
 
         java.util.List<String> compilerArgs = new java.util.ArrayList<>();
+        compilerArgs.add("-d");
+        compilerArgs.add(".");
         compilerArgs.add("-classpath");
         compilerArgs.add(".");
+        compilerArgs.add("-sourcepath");
+        compilerArgs.add("src");
         compilerArgs.addAll(sourceFiles);
 
         int result = compiler.run(null, null, null, compilerArgs.toArray(new String[0]));
