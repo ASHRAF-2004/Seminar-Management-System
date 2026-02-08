@@ -21,7 +21,12 @@ import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -51,10 +56,10 @@ public class CoordinatorDashboard extends JFrame {
         this.awardService = awardService;
         this.reportService = reportService;
         this.userRepository = userRepository;
-        this.seminarModel = new DefaultTableModel(new Object[]{"ID", "Title", "Date", "Venue", "Status"}, 0);
-        this.participantModel = new DefaultTableModel(new Object[]{"Enrollment", "Student", "Seminar", "Status"}, 0);
-        this.sessionModel = new DefaultTableModel(new Object[]{"ID", "Date", "Start", "End", "Venue", "Type", "Submissions", "Evaluators"}, 0);
-        this.awardModel = new DefaultTableModel(new Object[]{"ID", "Type", "Submission", "Session"}, 0);
+        this.seminarModel = buildReadOnlyModel(new Object[]{"ID", "Title", "Date", "Venue", "Status"});
+        this.participantModel = buildReadOnlyModel(new Object[]{"Enrollment", "Student", "Seminar", "Status"});
+        this.sessionModel = buildReadOnlyModel(new Object[]{"ID", "Date", "Start", "End", "Venue", "Type", "Submissions", "Evaluators"});
+        this.awardModel = buildReadOnlyModel(new Object[]{"ID", "Type", "Submission", "Session"});
         buildUi();
         loadSeminars();
         loadSessions();
@@ -298,8 +303,12 @@ public class CoordinatorDashboard extends JFrame {
         typeField.setColumns(30);
         JTextField venueField = new JTextField(seminar != null ? seminar.getVenue() : "");
         venueField.setColumns(30);
-        JTextField dateField = new JTextField(seminar != null ? seminar.getDate().toString() : LocalDate.now().plusDays(7).toString());
-        dateField.setColumns(30);
+        LocalDate today = LocalDate.now();
+        LocalDate seminarDate = seminar != null ? seminar.getDate() : today.plusDays(7);
+        if (seminarDate.isBefore(today)) {
+            seminarDate = today;
+        }
+        JSpinner dateSpinner = buildDateSpinner(seminarDate, today);
         JComboBox<model.SeminarStatus> statusBox = new JComboBox<>(model.SeminarStatus.values());
         if (seminar != null) {
             statusBox.setSelectedItem(seminar.getStatus());
@@ -318,8 +327,8 @@ public class CoordinatorDashboard extends JFrame {
         gbc.gridx = 1; dialog.add(typeField, gbc); y++;
         gbc.gridx = 0; gbc.gridy = y; dialog.add(new JLabel("Venue"), gbc);
         gbc.gridx = 1; dialog.add(venueField, gbc); y++;
-        gbc.gridx = 0; gbc.gridy = y; dialog.add(new JLabel("Date (yyyy-MM-dd)"), gbc);
-        gbc.gridx = 1; dialog.add(dateField, gbc); y++;
+        gbc.gridx = 0; gbc.gridy = y; dialog.add(new JLabel("Date"), gbc);
+        gbc.gridx = 1; dialog.add(dateSpinner, gbc); y++;
         gbc.gridx = 0; gbc.gridy = y; dialog.add(new JLabel("Status"), gbc);
         gbc.gridx = 1; dialog.add(statusBox, gbc); y++;
 
@@ -332,7 +341,11 @@ public class CoordinatorDashboard extends JFrame {
                 return;
             }
             try {
-                LocalDate date = LocalDate.parse(dateField.getText().trim());
+                LocalDate date = toLocalDate((Date) dateSpinner.getValue());
+                if (date.isBefore(LocalDate.now())) {
+                    JOptionPane.showMessageDialog(dialog, "Seminar date cannot be in the past", "Validation", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
                 if (seminar == null) {
                     seminarService.create(titleField.getText(), presenterField.getText(), abstractField.getText(),
                             supervisorField.getText(), typeField.getText(), venueField.getText(), date,
@@ -368,12 +381,16 @@ public class CoordinatorDashboard extends JFrame {
         gbc.insets = new Insets(5, 5, 5, 5);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        JTextField dateField = new JTextField(session != null ? session.getDate().toString() : LocalDate.now().plusDays(1).toString());
-        dateField.setColumns(24);
-        JTextField startField = new JTextField(session != null ? session.getStartTime().toString() : "09:00");
-        startField.setColumns(24);
-        JTextField endField = new JTextField(session != null ? session.getEndTime().toString() : "10:00");
-        endField.setColumns(24);
+        LocalDate today = LocalDate.now();
+        LocalDate sessionDate = session != null ? session.getDate() : today.plusDays(1);
+        if (sessionDate.isBefore(today)) {
+            sessionDate = today;
+        }
+        JSpinner dateSpinner = buildDateSpinner(sessionDate, today);
+        LocalTime startTime = session != null ? session.getStartTime() : LocalTime.of(9, 0);
+        LocalTime endTime = session != null ? session.getEndTime() : LocalTime.of(10, 0);
+        JSpinner startSpinner = buildTimeSpinner(startTime);
+        JSpinner endSpinner = buildTimeSpinner(endTime);
         JTextField venueField = new JTextField(session != null ? session.getVenueCode() : "CQCR1024");
         venueField.setColumns(24);
         JComboBox<SessionType> typeBox = new JComboBox<>(SessionType.values());
@@ -383,12 +400,12 @@ public class CoordinatorDashboard extends JFrame {
         JLabel hint = new JLabel("Venue follows MMU code e.g. CQCR1024");
 
         int y = 0;
-        gbc.gridx = 0; gbc.gridy = y; dialog.add(new JLabel("Date (yyyy-MM-dd)"), gbc);
-        gbc.gridx = 1; dialog.add(dateField, gbc); y++;
-        gbc.gridx = 0; gbc.gridy = y; dialog.add(new JLabel("Start (HH:mm)"), gbc);
-        gbc.gridx = 1; dialog.add(startField, gbc); y++;
-        gbc.gridx = 0; gbc.gridy = y; dialog.add(new JLabel("End (HH:mm)"), gbc);
-        gbc.gridx = 1; dialog.add(endField, gbc); y++;
+        gbc.gridx = 0; gbc.gridy = y; dialog.add(new JLabel("Date"), gbc);
+        gbc.gridx = 1; dialog.add(dateSpinner, gbc); y++;
+        gbc.gridx = 0; gbc.gridy = y; dialog.add(new JLabel("Start time"), gbc);
+        gbc.gridx = 1; dialog.add(startSpinner, gbc); y++;
+        gbc.gridx = 0; gbc.gridy = y; dialog.add(new JLabel("End time"), gbc);
+        gbc.gridx = 1; dialog.add(endSpinner, gbc); y++;
         gbc.gridx = 0; gbc.gridy = y; dialog.add(new JLabel("Venue Code"), gbc);
         gbc.gridx = 1; dialog.add(venueField, gbc); y++;
         gbc.gridx = 0; gbc.gridy = y; dialog.add(new JLabel("Session Type"), gbc);
@@ -400,9 +417,21 @@ public class CoordinatorDashboard extends JFrame {
 
         save.addActionListener(ev -> {
             try {
-                LocalDate date = LocalDate.parse(dateField.getText().trim());
-                java.time.LocalTime start = java.time.LocalTime.parse(startField.getText().trim());
-                java.time.LocalTime end = java.time.LocalTime.parse(endField.getText().trim());
+                LocalDate date = toLocalDate((Date) dateSpinner.getValue());
+                LocalTime start = toLocalTime((Date) startSpinner.getValue());
+                LocalTime end = toLocalTime((Date) endSpinner.getValue());
+                if (date.isBefore(LocalDate.now())) {
+                    JOptionPane.showMessageDialog(dialog, "Session date cannot be in the past", "Validation", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+                if (!end.isAfter(start)) {
+                    JOptionPane.showMessageDialog(dialog, "End time must be after the start time", "Validation", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+                if (date.isEqual(LocalDate.now()) && LocalDateTime.of(date, start).isBefore(LocalDateTime.now())) {
+                    JOptionPane.showMessageDialog(dialog, "Session start time cannot be in the past", "Validation", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
                 if (!VenueCode.isValid(venueField.getText().trim())) {
                     JOptionPane.showMessageDialog(dialog, "Invalid venue code", "Validation", JOptionPane.WARNING_MESSAGE);
                     return;
@@ -557,5 +586,47 @@ public class CoordinatorDashboard extends JFrame {
 
         dialog.pack();
         dialog.setVisible(true);
+    }
+
+    private DefaultTableModel buildReadOnlyModel(Object[] columns) {
+        return new DefaultTableModel(columns, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+    }
+
+    private JSpinner buildDateSpinner(LocalDate date, LocalDate minDate) {
+        Date value = toDate(date);
+        Date min = minDate != null ? toDate(minDate) : null;
+        SpinnerDateModel model = new SpinnerDateModel(value, min, null, Calendar.DAY_OF_MONTH);
+        JSpinner spinner = new JSpinner(model);
+        spinner.setEditor(new JSpinner.DateEditor(spinner, "yyyy-MM-dd"));
+        return spinner;
+    }
+
+    private JSpinner buildTimeSpinner(LocalTime time) {
+        Date value = toTimeDate(time);
+        SpinnerDateModel model = new SpinnerDateModel(value, null, null, Calendar.MINUTE);
+        JSpinner spinner = new JSpinner(model);
+        spinner.setEditor(new JSpinner.DateEditor(spinner, "HH:mm"));
+        return spinner;
+    }
+
+    private LocalDate toLocalDate(Date date) {
+        return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+    }
+
+    private LocalTime toLocalTime(Date date) {
+        return date.toInstant().atZone(ZoneId.systemDefault()).toLocalTime().withSecond(0).withNano(0);
+    }
+
+    private Date toDate(LocalDate date) {
+        return Date.from(date.atStartOfDay(ZoneId.systemDefault()).toInstant());
+    }
+
+    private Date toTimeDate(LocalTime time) {
+        return Date.from(time.atDate(LocalDate.now()).atZone(ZoneId.systemDefault()).toInstant());
     }
 }

@@ -11,7 +11,10 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.io.File;
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
 
 public class StudentDashboard extends JFrame {
@@ -36,8 +39,8 @@ public class StudentDashboard extends JFrame {
         this.enrollmentService = enrollmentService;
         this.submissionService = submissionService;
         this.studentId = studentId;
-        this.seminarModel = new DefaultTableModel(new Object[]{"ID", "Title", "Date", "Venue", "Status"}, 0);
-        this.enrollmentModel = new DefaultTableModel(new Object[]{"Enrollment ID", "Seminar", "Status"}, 0);
+        this.seminarModel = buildReadOnlyModel(new Object[]{"ID", "Title", "Date", "Venue", "Status"});
+        this.enrollmentModel = buildReadOnlyModel(new Object[]{"Enrollment ID", "Seminar", "Status"});
         buildUi();
         loadData();
         loadSubmission();
@@ -118,6 +121,7 @@ public class StudentDashboard extends JFrame {
         typeBox = new JComboBox<>(new String[]{"ORAL", "POSTER"});
         fileField = new JTextField();
         fileField.setColumns(30);
+        fileField.setEditable(false);
         JButton browse = new JButton("Browse...");
 
         browse.addActionListener(e -> {
@@ -209,8 +213,8 @@ public class StudentDashboard extends JFrame {
         title.setColumns(24);
         JTextField venue = new JTextField();
         venue.setColumns(24);
-        JTextField dateField = new JTextField("2024-12-01");
-        dateField.setColumns(24);
+        LocalDate today = LocalDate.now();
+        JSpinner dateSpinner = buildDateSpinner(today.plusDays(1), today);
         JComboBox<String> type = new JComboBox<>(new String[]{"ORAL", "POSTER"});
 
         JPanel panel = new JPanel(new GridLayout(0, 2, 5, 5));
@@ -218,15 +222,23 @@ public class StudentDashboard extends JFrame {
         panel.add(title);
         panel.add(new JLabel("Venue"));
         panel.add(venue);
-        panel.add(new JLabel("Date (yyyy-mm-dd)"));
-        panel.add(dateField);
+        panel.add(new JLabel("Date"));
+        panel.add(dateSpinner);
         panel.add(new JLabel("Type"));
         panel.add(type);
 
         int result = JOptionPane.showConfirmDialog(this, panel, "Propose Seminar", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
         if (result == JOptionPane.OK_OPTION) {
             try {
-                LocalDate date = LocalDate.parse(dateField.getText().trim());
+                if (title.getText().isBlank() || venue.getText().isBlank()) {
+                    JOptionPane.showMessageDialog(this, "Title and venue are required", "Validation", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+                LocalDate date = toLocalDate((Date) dateSpinner.getValue());
+                if (date.isBefore(LocalDate.now())) {
+                    JOptionPane.showMessageDialog(this, "Seminar date cannot be in the past", "Validation", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
                 seminarService.createStudentProposal(title.getText().trim(), studentId, venue.getText().trim(), date, (String) type.getSelectedItem());
                 JOptionPane.showMessageDialog(this, "Proposal submitted for coordinator approval (saved as draft)");
                 loadData();
@@ -234,5 +246,31 @@ public class StudentDashboard extends JFrame {
                 JOptionPane.showMessageDialog(this, "Invalid details: " + ex.getMessage());
             }
         }
+    }
+
+    private DefaultTableModel buildReadOnlyModel(Object[] columns) {
+        return new DefaultTableModel(columns, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+    }
+
+    private JSpinner buildDateSpinner(LocalDate date, LocalDate minDate) {
+        Date value = toDate(date);
+        Date min = minDate != null ? toDate(minDate) : null;
+        SpinnerDateModel model = new SpinnerDateModel(value, min, null, Calendar.DAY_OF_MONTH);
+        JSpinner spinner = new JSpinner(model);
+        spinner.setEditor(new JSpinner.DateEditor(spinner, "yyyy-MM-dd"));
+        return spinner;
+    }
+
+    private LocalDate toLocalDate(Date date) {
+        return date.toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+    }
+
+    private Date toDate(LocalDate date) {
+        return Date.from(date.atStartOfDay(ZoneId.systemDefault()).toInstant());
     }
 }
