@@ -31,7 +31,7 @@ public class EvaluatorDashboard extends JFrame {
         this.submissionService = submissionService;
         this.sessionService = sessionService;
         this.evaluatorId = evaluatorId;
-        this.submissionModel = new DefaultTableModel(new Object[]{"Submission", "Title", "Session", "Type"}, 0);
+        this.submissionModel = buildReadOnlyModel(new Object[]{"Submission", "Title", "Session", "Type"});
         buildUi();
         loadSubmissions();
     }
@@ -159,5 +159,14 @@ public class EvaluatorDashboard extends JFrame {
 
         dialog.pack();
         dialog.setVisible(true);
+    }
+
+    private DefaultTableModel buildReadOnlyModel(Object[] columns) {
+        return new DefaultTableModel(columns, 0) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
     }
 }
