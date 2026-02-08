@@ -62,7 +62,7 @@ public class CoordinatorDashboard extends JFrame {
     }
 
     private void buildUi() {
-        setSize(1000, 700);
+        setResizable(true);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
@@ -73,6 +73,8 @@ public class CoordinatorDashboard extends JFrame {
         tabs.addTab("Awards", buildAwardPanel());
         tabs.addTab("Reports", buildReportPanel());
         add(tabs, BorderLayout.CENTER);
+        pack();
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
     }
 
     private JPanel buildSeminarPanel() {
@@ -277,7 +279,7 @@ public class CoordinatorDashboard extends JFrame {
 
     private void openSeminarDialog(model.Seminar seminar) {
         JDialog dialog = new JDialog(this, seminar == null ? "Create Seminar" : "Edit Seminar", true);
-        dialog.setSize(500, 400);
+        dialog.setResizable(true);
         dialog.setLocationRelativeTo(this);
         dialog.setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
@@ -285,12 +287,19 @@ public class CoordinatorDashboard extends JFrame {
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
         JTextField titleField = new JTextField(seminar != null ? seminar.getTitle() : "");
+        titleField.setColumns(30);
         JTextField presenterField = new JTextField(seminar != null ? seminar.getPresenterId() : "");
+        presenterField.setColumns(30);
         JTextField abstractField = new JTextField(seminar != null ? seminar.getAbstractText() : "");
+        abstractField.setColumns(30);
         JTextField supervisorField = new JTextField(seminar != null ? seminar.getSupervisor() : "");
+        supervisorField.setColumns(30);
         JTextField typeField = new JTextField(seminar != null ? seminar.getPresentationType() : "Oral");
+        typeField.setColumns(30);
         JTextField venueField = new JTextField(seminar != null ? seminar.getVenue() : "");
+        venueField.setColumns(30);
         JTextField dateField = new JTextField(seminar != null ? seminar.getDate().toString() : LocalDate.now().plusDays(7).toString());
+        dateField.setColumns(30);
         JComboBox<model.SeminarStatus> statusBox = new JComboBox<>(model.SeminarStatus.values());
         if (seminar != null) {
             statusBox.setSelectedItem(seminar.getStatus());
@@ -346,12 +355,13 @@ public class CoordinatorDashboard extends JFrame {
             }
         });
 
+        dialog.pack();
         dialog.setVisible(true);
     }
 
     private void openSessionDialog(Session session) {
         JDialog dialog = new JDialog(this, session == null ? "Create Session" : "Edit Session", true);
-        dialog.setSize(400, 300);
+        dialog.setResizable(true);
         dialog.setLocationRelativeTo(this);
         dialog.setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
@@ -359,9 +369,13 @@ public class CoordinatorDashboard extends JFrame {
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
         JTextField dateField = new JTextField(session != null ? session.getDate().toString() : LocalDate.now().plusDays(1).toString());
+        dateField.setColumns(24);
         JTextField startField = new JTextField(session != null ? session.getStartTime().toString() : "09:00");
+        startField.setColumns(24);
         JTextField endField = new JTextField(session != null ? session.getEndTime().toString() : "10:00");
+        endField.setColumns(24);
         JTextField venueField = new JTextField(session != null ? session.getVenueCode() : "CQCR1024");
+        venueField.setColumns(24);
         JComboBox<SessionType> typeBox = new JComboBox<>(SessionType.values());
         if (session != null) {
             typeBox.setSelectedItem(session.getSessionType());
@@ -413,12 +427,13 @@ public class CoordinatorDashboard extends JFrame {
             }
         });
 
+        dialog.pack();
         dialog.setVisible(true);
     }
 
     private void openAssignmentDialog(Session session) {
         JDialog dialog = new JDialog(this, "Assign presenters & evaluators", true);
-        dialog.setSize(600, 500);
+        dialog.setResizable(true);
         dialog.setLocationRelativeTo(this);
         dialog.setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
@@ -475,12 +490,13 @@ public class CoordinatorDashboard extends JFrame {
             loadSessions();
         });
 
+        dialog.pack();
         dialog.setVisible(true);
     }
 
     private void openAwardDialog(Award award) {
         JDialog dialog = new JDialog(this, award == null ? "Nominate Award" : "Edit Award", true);
-        dialog.setSize(400, 300);
+        dialog.setResizable(true);
         dialog.setLocationRelativeTo(this);
         dialog.setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
@@ -539,6 +555,7 @@ public class CoordinatorDashboard extends JFrame {
             loadAwards();
         });
 
+        dialog.pack();
         dialog.setVisible(true);
     }
 }

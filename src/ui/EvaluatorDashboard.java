@@ -37,7 +37,7 @@ public class EvaluatorDashboard extends JFrame {
     }
 
     private void buildUi() {
-        setSize(700, 500);
+        setResizable(true);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
@@ -48,6 +48,8 @@ public class EvaluatorDashboard extends JFrame {
 
         JButton evaluateButton = new JButton("Evaluate");
         add(evaluateButton, BorderLayout.SOUTH);
+        pack();
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
 
         evaluateButton.addActionListener(e -> {
             int row = table.getSelectedRow();
@@ -85,7 +87,7 @@ public class EvaluatorDashboard extends JFrame {
 
     private void openEvaluationDialog(Submission submission) {
         JDialog dialog = new JDialog(this, "Evaluate Presentation", true);
-        dialog.setSize(450, 450);
+        dialog.setResizable(true);
         dialog.setLocationRelativeTo(this);
         dialog.setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
@@ -155,6 +157,7 @@ public class EvaluatorDashboard extends JFrame {
             dialog.dispose();
         });
 
+        dialog.pack();
         dialog.setVisible(true);
     }
 }

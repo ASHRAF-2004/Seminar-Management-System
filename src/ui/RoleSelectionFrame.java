@@ -43,13 +43,14 @@ public class RoleSelectionFrame extends JFrame {
 
     private void buildUi() {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(400, 250);
+        setResizable(true);
         setLocationRelativeTo(null);
 
         JPanel panel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(5, 5, 5, 5);
         gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1;
 
         JLabel welcome = new JLabel("Select your role and login", SwingConstants.CENTER);
         welcome.setFont(welcome.getFont().deriveFont(Font.BOLD, 16f));
@@ -70,6 +71,7 @@ public class RoleSelectionFrame extends JFrame {
         gbc.gridy++;
         panel.add(new JLabel("User ID"), gbc);
         JTextField idField = new JTextField();
+        idField.setColumns(24);
         gbc.gridx = 1;
         panel.add(idField, gbc);
 
@@ -77,6 +79,7 @@ public class RoleSelectionFrame extends JFrame {
         gbc.gridy++;
         panel.add(new JLabel("Password"), gbc);
         JPasswordField passwordField = new JPasswordField();
+        passwordField.setColumns(24);
         gbc.gridx = 1;
         panel.add(passwordField, gbc);
 
@@ -106,7 +109,19 @@ public class RoleSelectionFrame extends JFrame {
 
         registerButton.addActionListener(e -> new StudentRegistrationFrame(userRepository).setVisible(true));
 
-        add(panel);
+        JPanel container = new JPanel(new GridBagLayout());
+        GridBagConstraints containerConstraints = new GridBagConstraints();
+        containerConstraints.gridx = 0;
+        containerConstraints.gridy = 0;
+        containerConstraints.weightx = 1;
+        containerConstraints.weighty = 1;
+        containerConstraints.anchor = GridBagConstraints.CENTER;
+        containerConstraints.fill = GridBagConstraints.NONE;
+        container.add(panel, containerConstraints);
+
+        add(container);
+        pack();
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
     }
 
     private void openDashboard(Role role, String userId) {
