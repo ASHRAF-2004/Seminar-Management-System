@@ -19,19 +19,22 @@ public class StudentRegistrationFrame extends JFrame {
 
     private void buildUi() {
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        setSize(400, 250);
+        setResizable(true);
         setLocationRelativeTo(null);
 
         JPanel panel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(5, 5, 5, 5);
         gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1;
 
         JTextField idField = addRow(panel, gbc, 0, "Student ID");
         JTextField nameField = addRow(panel, gbc, 1, "Full Name");
         JPasswordField passwordField = new JPasswordField();
+        passwordField.setColumns(24);
         addRow(panel, gbc, 2, "Password", passwordField);
         JPasswordField confirmField = new JPasswordField();
+        confirmField.setColumns(24);
         addRow(panel, gbc, 3, "Confirm Password", confirmField);
 
         gbc.gridx = 0;
@@ -64,11 +67,24 @@ public class StudentRegistrationFrame extends JFrame {
             }
         });
 
-        add(panel);
+        JPanel container = new JPanel(new GridBagLayout());
+        GridBagConstraints containerConstraints = new GridBagConstraints();
+        containerConstraints.gridx = 0;
+        containerConstraints.gridy = 0;
+        containerConstraints.weightx = 1;
+        containerConstraints.weighty = 1;
+        containerConstraints.anchor = GridBagConstraints.CENTER;
+        containerConstraints.fill = GridBagConstraints.NONE;
+        container.add(panel, containerConstraints);
+
+        add(container);
+        pack();
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
     }
 
     private JTextField addRow(JPanel panel, GridBagConstraints gbc, int row, String label) {
         JTextField field = new JTextField();
+        field.setColumns(24);
         addRow(panel, gbc, row, label, field);
         return field;
     }

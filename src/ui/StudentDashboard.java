@@ -44,7 +44,7 @@ public class StudentDashboard extends JFrame {
     }
 
     private void buildUi() {
-        setSize(900, 600);
+        setResizable(true);
         setLocationRelativeTo(null);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(new BorderLayout());
@@ -80,6 +80,8 @@ public class StudentDashboard extends JFrame {
         JSplitPane outer = new JSplitPane(JSplitPane.VERTICAL_SPLIT, splitPane, submissionPanel);
         outer.setResizeWeight(0.5);
         add(outer, BorderLayout.CENTER);
+        pack();
+        setExtendedState(JFrame.MAXIMIZED_BOTH);
 
         enrollButton.addActionListener(e -> {
             int row = seminarTable.getSelectedRow();
@@ -108,10 +110,14 @@ public class StudentDashboard extends JFrame {
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
         titleField = new JTextField();
+        titleField.setColumns(30);
         abstractField = new JTextField();
+        abstractField.setColumns(30);
         supervisorField = new JTextField();
+        supervisorField.setColumns(30);
         typeBox = new JComboBox<>(new String[]{"ORAL", "POSTER"});
         fileField = new JTextField();
+        fileField.setColumns(30);
         JButton browse = new JButton("Browse...");
 
         browse.addActionListener(e -> {
@@ -200,8 +206,11 @@ public class StudentDashboard extends JFrame {
 
     private void openProposalDialog() {
         JTextField title = new JTextField();
+        title.setColumns(24);
         JTextField venue = new JTextField();
+        venue.setColumns(24);
         JTextField dateField = new JTextField("2024-12-01");
+        dateField.setColumns(24);
         JComboBox<String> type = new JComboBox<>(new String[]{"ORAL", "POSTER"});
 
         JPanel panel = new JPanel(new GridLayout(0, 2, 5, 5));
